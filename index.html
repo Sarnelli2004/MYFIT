@@ -12,14 +12,17 @@
 <link rel="icon" href="icona-myfit-192.png">
 <title>MyFit</title>
 <script src="myfit.js"></script>
+<script src="dieta.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <style>
-/* Layout: colonna da telefono; Home = saluto, obiettivo del giorno, andamento del peso, scorciatoie; registrazione come modulo a passi brevi */
+/* Layout: al primo avvio registrazione a schermate singole (una domanda per volta, pulsante in basso),
+   poi questionario sulla dieta; dopo, dashboard a schede: obiettivo e macro, oggi (menu + allenamento), peso, preferenze, profilo */
 :root{
   --bg:#f1f3ee; --surface:#ffffff; --ink:#18231c; --muted:#5d6a61; --line:#dce2d8;
   --accent:#2f6b4f; --accent-soft:#e0ede5; --warm:#d27a2c; --warm-soft:#fbecdc;
-  --ok:#2f7a4f; --warn:#b7791f; --bad:#b4442f; --steel:#3b4a5c;
+  --ok:#2f7a4f; --warn:#b7791f; --bad:#b4442f; --steel:#3b4a5c; --steel-soft:#e4e8ee;
+  --c-prot:#2f6b4f; --c-carb:#d27a2c; --c-fat:#6b7fa0;
   --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --f-body:"Figtree","Segoe UI",system-ui,sans-serif;
   color-scheme:light;
@@ -27,51 +30,116 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#111613; --surface:#1a201c; --ink:#e6ece7; --muted:#9aa79e; --line:#2a332d;
   --accent:#7cc4a0; --accent-soft:#1f3128; --warm:#f0a65a; --warm-soft:#33271a;
-  --ok:#6cc993; --warn:#e3b04f; --bad:#ec8a72; --steel:#a9bbd0; color-scheme:dark}}
+  --ok:#6cc993; --warn:#e3b04f; --bad:#ec8a72; --steel:#a9bbd0; --steel-soft:#232b33;
+  --c-prot:#7cc4a0; --c-carb:#f0a65a; --c-fat:#9db0d0; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111613; --surface:#1a201c; --ink:#e6ece7; --muted:#9aa79e; --line:#2a332d;
   --accent:#7cc4a0; --accent-soft:#1f3128; --warm:#f0a65a; --warm-soft:#33271a;
-  --ok:#6cc993; --warn:#e3b04f; --bad:#ec8a72; --steel:#a9bbd0; color-scheme:dark}
+  --ok:#6cc993; --warn:#e3b04f; --bad:#ec8a72; --steel:#a9bbd0; --steel-soft:#232b33;
+  --c-prot:#7cc4a0; --c-carb:#f0a65a; --c-fat:#9db0d0; color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);-webkit-tap-highlight-color:transparent;padding-top:env(safe-area-inset-top,0px)}
 [hidden]{display:none!important}
-.wrap{max-width:560px;margin:0 auto;padding:18px 16px 28px;display:flex;flex-direction:column;gap:14px}
 h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 .num{font-variant-numeric:tabular-nums}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);font-weight:600;padding:12px 16px;border-radius:12px;cursor:pointer;text-align:center;text-decoration:none;color:var(--ink);display:inline-block}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.small{padding:8px 12px;font-size:.88rem}
+.btn.link{border:0;background:none;color:var(--accent);padding:6px 0}
+.btn:disabled{opacity:.45;cursor:default}
+.note{color:var(--muted);font-size:.82rem;margin:0}
+.err{color:var(--bad);font-size:.9rem;margin:0}
 
-.brand{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.85rem}
-.brand b{font-family:var(--f-display);font-weight:800;font-size:1.05rem;color:var(--accent);letter-spacing:-.01em}
-.hello{font-weight:800;font-size:1.9rem;letter-spacing:-.015em;line-height:1.1}
-.lead{color:var(--muted);margin:4px 0 0}
+/* ---------- registrazione e questionario ---------- */
+.flow{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;max-width:560px;margin:0 auto;padding:0 16px}
+.flow-top{display:flex;align-items:center;gap:12px;padding:14px 0 8px}
+.back{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center;flex:none}
+.back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.prog{flex:1;display:grid;gap:6px}
+.prog .bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.prog .bar span{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.prog small{font-size:.75rem;color:var(--muted);font-weight:600;letter-spacing:.04em}
+.screen{flex:1;display:flex;flex-direction:column;gap:18px;padding:14px 0 24px}
+.kicker{font-size:.75rem;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:var(--accent)}
+.q{font-weight:800;font-size:1.9rem;line-height:1.12;letter-spacing:-.015em}
+.qsub{color:var(--muted);margin:-8px 0 0}
+.fields{display:grid;gap:14px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fld{display:grid;gap:6px;min-width:0}
+.fld label{font-size:.85rem;font-weight:600;color:var(--muted)}
+.inp{position:relative}
+.inp input{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:16px 46px 16px 16px;font-size:1.15rem;font-weight:600}
+.inp.noun input{padding-right:16px}
+.inp small{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem;pointer-events:none}
+.opts{display:grid;gap:10px}
+.opt{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;align-items:center;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px;cursor:pointer}
+.opt .ico{grid-row:span 2;width:38px;height:38px;border-radius:12px;background:var(--bg);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;color:var(--accent);font-size:1rem}
+.opt b{font-weight:600;font-size:1.02rem}
+.opt span{font-size:.85rem;color:var(--muted)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt[aria-pressed="true"] .ico{background:var(--accent);color:var(--bg)}
+.opt.compact{grid-template-columns:1fr auto;padding:13px 16px}
+.opt.compact .tick{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);display:grid;place-items:center}
+.opt.compact[aria-pressed="true"] .tick{background:var(--accent);border-color:var(--accent)}
+.opt.compact .tick svg{width:14px;height:14px;fill:none;stroke:var(--bg);stroke-width:3}
+.opt.compact:not([aria-pressed="true"]) .tick svg{visibility:hidden}
+.flow-bottom{position:sticky;bottom:0;padding:12px 0 calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 30%);display:grid;gap:8px}
+.flow-bottom .btn{width:100%;padding:15px}
+.result{background:var(--accent);color:var(--bg);border-radius:22px;padding:22px;display:grid;gap:14px}
+.result .big{font-family:var(--f-display);font-weight:800;font-size:3.4rem;line-height:1;letter-spacing:-.02em}
+.result .big small{font:600 1.05rem var(--f-body);margin-left:6px;opacity:.85}
+.result p{margin:0;opacity:.92}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.8rem;font-weight:600;padding:5px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.chip.soft{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
 
+/* ---------- dashboard ---------- */
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 28px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;align-items:center;gap:12px}
+.avatar{width:48px;height:48px;border-radius:50%;background:var(--accent);color:var(--bg);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:1.15rem;flex:none}
+.top h1{font-weight:800;font-size:1.5rem;line-height:1.1}
+.top p{margin:2px 0 0;color:var(--muted);font-size:.88rem}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:12px}
 .card h2{font-weight:600;font-size:1.1rem}
 .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
-
-/* obiettivo del giorno */
-.goal{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-.goal .eyebrow{color:inherit;opacity:.8}
-.goal .big{font-family:var(--f-display);font-weight:800;font-size:3rem;line-height:1;letter-spacing:-.02em}
-.goal .big small{font:600 1rem var(--f-body);margin-left:6px;opacity:.85}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stat{background:color-mix(in srgb,var(--bg) 14%,transparent);border-radius:12px;padding:8px 10px;min-width:0}
-.stat span{display:block;font-size:.72rem;opacity:.85}
-.stat b{font-family:var(--f-display);font-size:1.15rem;font-weight:600}
-.pill{display:inline-block;font-size:.72rem;font-weight:600;border-radius:99px;padding:2px 8px;background:color-mix(in srgb,var(--bg) 22%,transparent)}
-
-/* promemoria */
+.goal .kc{font-family:var(--f-display);font-weight:800;font-size:2.8rem;line-height:1;letter-spacing:-.02em}
+.goal .kc small{font:600 1rem var(--f-body);color:var(--muted);margin-left:6px}
+.macro{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mac{display:grid;gap:5px;min-width:0}
+.mac span{font-size:.78rem;color:var(--muted);font-weight:600}
+.mac b{font-family:var(--f-display);font-size:1.25rem;font-weight:600}
+.mac i{display:block;height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.mac i em{display:block;height:100%;border-radius:99px}
+.minis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.mini span{display:block;font-size:.75rem;color:var(--muted)}
+.mini b{font-weight:600}
+.pill{display:inline-block;font-size:.7rem;font-weight:600;border-radius:99px;padding:2px 8px;background:var(--accent-soft);color:var(--accent);margin-left:4px}
+.pill.warn{background:var(--warm-soft);color:var(--warm)}
+.today{display:grid;grid-template-columns:1fr;gap:12px}
+.today>*{min-width:0}
+.tile{grid-template-columns:minmax(0,1fr)}
+.mlist li{min-width:0}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:8px;text-decoration:none;color:var(--ink)}
+.tile .hd{display:flex;align-items:center;gap:10px}
+.tile .hd svg{width:22px;height:22px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tile.d .hd svg{stroke:var(--accent)} .tile.w .hd svg{stroke:var(--warm)}
+.tile h3{font-weight:600;font-size:1.05rem;flex:1}
+.tile .go{font-size:.85rem;font-weight:600;color:var(--accent)}
+.tile.w .go{color:var(--warm)}
+.tile .ttl{font-weight:600}
+.mlist{list-style:none;margin:0;padding:0;display:grid}
+.mlist li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:.92rem}
+.mlist li span{color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mlist li b{font-weight:600;white-space:nowrap}
 .remind{background:var(--warm-soft);border-color:transparent;grid-template-columns:1fr auto;align-items:center}
-.remind p{margin:0}
-.remind b{display:block}
-
-/* peso */
+.remind p{margin:0} .remind b{display:block}
 .wnow{font-family:var(--f-display);font-weight:800;font-size:2.2rem;line-height:1}
 .wnow small{font:600 .95rem var(--f-body);color:var(--muted);margin-left:4px}
-.delta{font-weight:600;font-size:.9rem;padding:3px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.delta{font-weight:600;font-size:.88rem;padding:3px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
 .delta.down{background:var(--warm-soft);color:var(--warm)}
 .chart{width:100%;height:auto;display:block;overflow:visible}
 .chart .grid{stroke:var(--line);stroke-width:1}
@@ -80,323 +148,345 @@ button,input,select{font:inherit;color:inherit}
 .chart .pt{fill:var(--surface);stroke:var(--accent);stroke-width:2}
 .chart .end{fill:var(--accent)}
 .chart text{fill:var(--muted);font:500 11px var(--f-body)}
-.chart .lab{fill:var(--ink);font-weight:600}
 .empty{color:var(--muted);font-size:.9rem;margin:0;background:var(--bg);border-radius:12px;padding:12px}
 .hist{list-style:none;margin:0;padding:0;display:grid}
 .hist li{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:.92rem}
 .hist .d{color:var(--muted)}
 .hist .ch{font-size:.8rem;color:var(--muted);min-width:56px;text-align:right}
 .advice{border-radius:12px;padding:12px;background:var(--bg);display:grid;gap:8px;font-size:.92rem}
-.advice p{margin:0}
-.advice.ok{background:var(--accent-soft)}
-.advice.act{background:var(--warm-soft)}
-
-/* scorciatoie */
-.go{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.go a{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;text-decoration:none;color:var(--ink);display:grid;gap:6px;min-width:0}
-.go a svg{width:28px;height:28px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.go .d svg{stroke:var(--accent)} .go .p svg{stroke:var(--warm)}
-.go b{font-family:var(--f-display);font-weight:600;font-size:1.05rem}
-.go span{font-size:.82rem;color:var(--muted)}
-
-/* profilo */
-.prof{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 14px;margin:0}
-.prof div{min-width:0}
-.prof dt{font-size:.75rem;color:var(--muted)}
-.prof dd{margin:0;font-weight:600}
-
-/* moduli */
-form{display:grid;gap:14px}
-.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.fld{display:grid;gap:6px;min-width:0}
-.fld>label,.fld>.lbl{font-size:.82rem;font-weight:600;color:var(--muted)}
-.inp{position:relative}
-.inp input,.fld select{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;font-size:1rem;font-weight:600}
-.inp input{padding-right:42px}
-.inp small{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;pointer-events:none}
-.inp.noun input{padding-right:12px}
-input:invalid:not(:placeholder-shown){border-color:var(--bad)}
-.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
-.seg label{position:relative;text-align:center;padding:9px 4px;border-radius:9px;font-weight:600;font-size:.88rem;cursor:pointer;color:var(--muted)}
-.seg input{position:absolute;opacity:0;inset:0;cursor:pointer}
-.seg label:has(input:checked){background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.seg label:has(input:focus-visible){outline:2px solid var(--accent)}
-.preview{border-radius:14px;background:var(--accent-soft);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.preview b{font-family:var(--f-display);font-size:1.5rem;font-weight:800;color:var(--accent)}
-.preview span{font-size:.85rem;color:var(--muted)}
-.err{color:var(--bad);font-size:.88rem;margin:0}
-.btn{border:1px solid var(--line);background:var(--surface);font-weight:600;padding:12px 16px;border-radius:12px;cursor:pointer;text-align:center}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-.btn.small{padding:8px 12px;font-size:.88rem}
-.btn.link{border:0;background:none;color:var(--accent);padding:6px 0}
-.btns{display:flex;gap:10px;flex-wrap:wrap}
-.btns .primary{flex:1}
-.note{color:var(--muted);font-size:.82rem;margin:0}
+.advice p{margin:0} .advice.ok{background:var(--accent-soft)} .advice.act{background:var(--warm-soft)}
+.wform{display:grid;gap:12px}
+.wform .inp input{padding:12px 42px 12px 12px;font-size:1rem;background:var(--bg)}
+.wform .inp.noun input{padding-right:12px}
+.prof{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 14px;margin:0}
+.prof div{min-width:0} .prof dt{font-size:.75rem;color:var(--muted)} .prof dd{margin:0;font-weight:600}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(80px + env(safe-area-inset-bottom,0px));max-width:528px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 14px;font-weight:600;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-.welcome{display:grid;gap:6px;padding:8px 0 4px}
-.welcome .hello{font-size:2.1rem}
-.steps{display:flex;gap:8px;flex-wrap:wrap}
-.steps span{font-size:.8rem;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+@media (min-width:520px){.today{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){.prog .bar span{transition:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="brand"><b>MyFit</b><span id="today"></span></div>
 
-  <!-- REGISTRAZIONE / MODIFICA -->
-  <section id="reg" hidden>
-    <div class="welcome" id="regIntro">
-      <h1 class="hello">Benvenuto in MyFit</h1>
-      <p class="lead">Crea il tuo profilo: calcolo le calorie giuste per te e la dieta si adatta da sola. Ogni mese aggiorni il peso e vedi come cambi.</p>
-      <div class="steps"><span>1 · I tuoi dati</span><span>2 · Obiettivo</span><span>3 · Si parte</span></div>
+<!-- REGISTRAZIONE + QUESTIONARIO -->
+<div class="flow" id="flow" hidden>
+  <div class="flow-top">
+    <button class="back" type="button" id="back" aria-label="Indietro"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="prog"><small id="progT"></small><div class="bar"><span id="progB"></span></div></div>
+  </div>
+  <form class="screen" id="screen" novalidate></form>
+</div>
+
+<!-- DASHBOARD -->
+<div class="wrap" id="dash" hidden>
+  <div class="top"><div class="avatar" id="avatar"></div><div><h1 id="hello"></h1><p id="today"></p></div></div>
+
+  <div class="card goal">
+    <div class="row"><span class="eyebrow">Obiettivo di ogni giorno</span><span class="eyebrow" id="goalName"></span></div>
+    <div class="kc num" id="kcal"></div>
+    <div class="macro" id="macro"></div>
+    <div class="minis">
+      <div class="mini"><span>Peso</span><b class="num" id="mPeso"></b></div>
+      <div class="mini"><span>BMI</span><b class="num" id="mBmi"></b></div>
+      <div class="mini"><span>Mantenimento</span><b class="num" id="mTdee"></b></div>
     </div>
-    <div class="welcome" id="editIntro" hidden>
-      <h1 class="hello">Modifica profilo</h1>
-      <p class="lead">Il peso si aggiorna dalla Home con "Registra peso", così resta nello storico.</p>
-    </div>
-    <form class="card" id="regForm" novalidate>
+  </div>
+
+  <div class="card remind" id="remind" hidden>
+    <p><b>È ora del controllo mensile</b><span class="note" id="remS"></span></p>
+    <button class="btn primary small" type="button" data-open-w>Registra</button>
+  </div>
+
+  <div class="today">
+    <a class="tile d" href="pasti.html">
+      <div class="hd"><svg viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 2 2v8M5 3v5M9 3v5M16 21V3c2.5 1.5 3.5 4 3.5 7.5S18 14 16 14"/></svg><h3>Menu di oggi</h3><span class="go">Apri</span></div>
+      <div class="ttl" id="tdTitle"></div>
+      <ul class="mlist num" id="tdMeals"></ul>
+    </a>
+    <a class="tile w" href="allenamento.html">
+      <div class="hd"><svg viewBox="0 0 24 24"><path d="M3 9.5v5M6 7v10M18 7v10M21 9.5v5M6 12h12"/></svg><h3>Allenamento di oggi</h3><span class="go">Apri</span></div>
+      <div class="ttl" id="twTitle"></div>
+      <p class="note" id="twSub"></p>
+      <p class="note" id="twNext"></p>
+    </a>
+  </div>
+
+  <div class="card" id="wCard">
+    <div class="row"><h2>Il tuo peso</h2><span class="note" id="next"></span></div>
+    <div class="row" style="align-items:center"><div class="wnow num" id="wnow"></div><span class="delta num" id="delta" hidden></span></div>
+    <div id="chartBox"></div>
+    <div id="advice"></div>
+    <form class="wform" id="wForm" hidden>
       <div class="f2">
-        <div class="fld"><label for="nome">Nome</label><div class="inp noun"><input id="nome" autocomplete="given-name" required placeholder="Luigi"></div></div>
-        <div class="fld"><label for="cognome">Cognome</label><div class="inp noun"><input id="cognome" autocomplete="family-name" required placeholder="Rossi"></div></div>
+        <div class="fld"><label for="wKg">Peso</label><div class="inp"><input id="wKg" inputmode="decimal" placeholder="60"><small>kg</small></div></div>
+        <div class="fld"><label for="wDate">Data</label><div class="inp noun"><input id="wDate" type="date"></div></div>
       </div>
-      <div class="fld"><span class="lbl" id="sessoL">Sesso</span>
-        <div class="seg" role="radiogroup" aria-labelledby="sessoL">
-          <label><input type="radio" name="sesso" id="sessoM" value="M" checked>Uomo</label>
-          <label><input type="radio" name="sesso" id="sessoF" value="F">Donna</label>
-        </div>
-      </div>
-      <div class="f2">
-        <div class="fld"><label for="eta">Età</label><div class="inp"><input id="eta" inputmode="numeric" required placeholder="27" pattern="[0-9]*"><small>anni</small></div></div>
-        <div class="fld"><label for="altezza">Altezza</label><div class="inp"><input id="altezza" inputmode="numeric" required placeholder="170"><small>cm</small></div></div>
-      </div>
-      <div class="fld" id="pesoWrap"><label for="peso">Peso di oggi</label><div class="inp"><input id="peso" inputmode="decimal" required placeholder="60"><small>kg</small></div></div>
-      <div class="fld"><span class="lbl" id="obL">Obiettivo</span>
-        <div class="seg" role="radiogroup" aria-labelledby="obL">
-          <label><input type="radio" name="ob" id="obM" value="massa" checked>Massa</label>
-          <label><input type="radio" name="ob" id="obN" value="mantenimento">Mantenere</label>
-          <label><input type="radio" name="ob" id="obD" value="dimagrimento">Dimagrire</label>
-        </div>
-      </div>
-      <div class="fld"><label for="att">Durante il giorno, oltre alla palestra</label>
-        <select id="att"><option value="1.4">Lavoro seduto, poco movimento</option><option value="1.55" selected>Un po' di movimento</option><option value="1.7">Lavoro in piedi o molto attivo</option></select>
-      </div>
-      <div class="preview" id="preview" aria-live="polite"><div><span>Le tue calorie al giorno</span><br><b class="num" id="pvK">—</b></div><span class="num" id="pvP">Compila i dati per il calcolo</span></div>
-      <p class="err" id="regErr" hidden></p>
-      <div class="btns"><button class="btn primary" type="submit" id="regBtn">Crea profilo</button><button class="btn" type="button" id="regCancel" hidden>Annulla</button></div>
-      <p class="note">I dati restano solo su questo telefono.</p>
+      <div class="fld"><label for="wH">Altezza (solo se è cambiata)</label><div class="inp"><input id="wH" inputmode="numeric" placeholder="170"><small>cm</small></div></div>
+      <p class="err" id="wErr" hidden></p>
+      <div class="row" style="justify-content:flex-start"><button class="btn primary" type="submit">Salva peso</button><button class="btn" type="button" id="wCancel">Annulla</button></div>
     </form>
-  </section>
+    <button class="btn primary" type="button" id="wOpen" data-open-w>Registra peso</button>
+    <ul class="hist num" id="hist"></ul>
+  </div>
 
-  <!-- HOME -->
-  <section id="dash" hidden style="display:flex;flex-direction:column;gap:14px">
-    <div><h1 class="hello" id="hello"></h1><p class="lead" id="goalLabel"></p></div>
+  <div class="card">
+    <div class="row"><h2>Le tue preferenze</h2><button class="btn link" type="button" id="redoQ">Rifai il questionario</button></div>
+    <div class="chips" id="prefs"></div>
+  </div>
 
-    <div class="card goal">
-      <div class="row"><span class="eyebrow">Il tuo obiettivo di ogni giorno</span><span class="pill" id="corrPill" hidden></span></div>
-      <div class="big num" id="kcal"></div>
-      <div class="stats">
-        <div class="stat"><span>Proteine</span><b class="num" id="prot"></b></div>
-        <div class="stat"><span>BMI</span><b class="num" id="bmi"></b></div>
-        <div class="stat"><span>Mantenimento</span><b class="num" id="tdee"></b></div>
-      </div>
-    </div>
-
-    <div class="card remind" id="remind" hidden>
-      <p><b id="remT">È ora del controllo mensile</b><span class="note" id="remS">Pesati al mattino, a digiuno, e registra il peso.</span></p>
-      <button class="btn primary small" type="button" data-open-w>Registra</button>
-    </div>
-
-    <div class="card" id="wCard">
-      <div class="row"><h2>Il tuo peso</h2><span class="note" id="next"></span></div>
-      <div class="row" style="align-items:center"><div class="wnow num" id="wnow"></div><span class="delta num" id="delta" hidden></span></div>
-      <div id="chartBox"></div>
-      <div id="advice"></div>
-
-      <form id="wForm" hidden>
-        <div class="f2">
-          <div class="fld"><label for="wKg">Peso</label><div class="inp"><input id="wKg" inputmode="decimal" required placeholder="60"><small>kg</small></div></div>
-          <div class="fld"><label for="wDate">Data</label><div class="inp noun"><input id="wDate" type="date" required></div></div>
-        </div>
-        <div class="fld"><label for="wH">Altezza (solo se è cambiata)</label><div class="inp"><input id="wH" inputmode="numeric" placeholder="170"><small>cm</small></div></div>
-        <p class="err" id="wErr" hidden></p>
-        <div class="btns"><button class="btn primary" type="submit">Salva peso</button><button class="btn" type="button" id="wCancel">Annulla</button></div>
-      </form>
-      <button class="btn primary" type="button" id="wOpen" data-open-w>Registra peso</button>
-      <ul class="hist num" id="hist"></ul>
-    </div>
-
-    <div class="go">
-      <a class="d" href="pasti.html"><svg viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 2 2v8M5 3v5M9 3v5M16 21V3c2.5 1.5 3.5 4 3.5 7.5S18 14 16 14"/></svg><b>Dieta</b><span class="num" id="goD">Menu della settimana</span></a>
-      <a class="p" href="allenamento.html"><svg viewBox="0 0 24 24"><path d="M3 9.5v5M6 7v10M18 7v10M21 9.5v5M6 12h12"/></svg><b>Palestra</b><span id="goP">3 giorni, un'ora</span></a>
-    </div>
-
-    <div class="card">
-      <div class="row"><h2>Profilo</h2><button class="btn link" type="button" id="edit">Modifica</button></div>
-      <dl class="prof" id="prof"></dl>
-    </div>
-  </section>
+  <div class="card">
+    <div class="row"><h2>Profilo</h2><button class="btn link" type="button" id="edit">Modifica</button></div>
+    <dl class="prof" id="prof"></dl>
+  </div>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
-const M=window.MyFit, $=id=>document.getElementById(id), DAY=864e5;
+const M=window.MyFit, D=window.Dieta, $=id=>document.getElementById(id), DAY=864e5;
 const fmtD=(t,o={day:"numeric",month:"short"})=>new Date(t).toLocaleDateString("it-IT",o);
 const num=v=>{const n=parseFloat(String(v).replace(",","."));return isFinite(n)?n:NaN};
 const isoToday=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
-let P=M.load(), editing=false;
+const GIORNI=["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"];
+const CHECK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+let P=M.load();
 
-$("today").textContent=fmtD(Date.now(),{weekday:"long",day:"numeric",month:"long"});
-
-/* ---------- registrazione ---------- */
-function readForm(){
-  return {nome:$("nome").value.trim(),cognome:$("cognome").value.trim(),sesso:document.querySelector('[name=sesso]:checked').value,
-    eta:Math.round(num($("eta").value)),altezza:Math.round(num($("altezza").value)),peso:num($("peso").value),
-    obiettivo:document.querySelector('[name=ob]:checked').value,attivita:+$("att").value};
+/* =================== REGISTRAZIONE E QUESTIONARIO =================== */
+// stato del flusso: dati provvisori (draft) e risposte (ans)
+let mode="reg", step=0, draft={}, ans={};
+const REG=[
+ {id:"nome",kicker:"Benvenuto in MyFit",q:"Come ti chiami?",sub:"Ti serve un minuto: poi calcolo le tue calorie e prepariamo la dieta insieme.",
+  html:()=>`<div class="fields"><div class="fld"><label for="nome">Nome</label><div class="inp noun"><input id="nome" autocomplete="given-name" value="${esc(draft.nome)}" placeholder="Il tuo nome"></div></div>
+    <div class="fld"><label for="cognome">Cognome</label><div class="inp noun"><input id="cognome" autocomplete="family-name" value="${esc(draft.cognome)}" placeholder="Il tuo cognome"></div></div></div>`,
+  read:()=>{draft.nome=$("nome").value.trim();draft.cognome=$("cognome").value.trim();
+    return !draft.nome?"Scrivi il tuo nome.":!draft.cognome?"Scrivi il tuo cognome.":""}},
+ {id:"chi",kicker:"Su di te",q:()=>`Piacere, ${draft.nome}. Qualcosa su di te`,sub:"Sesso ed età servono per calcolare quante calorie consumi.",
+  html:()=>`<div class="opts" role="radiogroup" aria-label="Sesso">${opt("sesso","M","Uomo","","U")}${opt("sesso","F","Donna","","D")}</div>
+    <div class="fld"><label for="eta">Età</label><div class="inp"><input id="eta" inputmode="numeric" value="${draft.eta??""}" placeholder="27"><small>anni</small></div></div>`,
+  read:()=>{draft.eta=Math.round(num($("eta").value));return !draft.sesso?"Scegli uomo o donna.":!(draft.eta>=14&&draft.eta<=90)?"Inserisci un'età tra 14 e 90 anni.":""}},
+ {id:"corpo",kicker:"Il tuo corpo",q:"Quanto sei alto e quanto pesi?",sub:"Pesati al mattino, a digiuno: sarà il tuo punto di partenza.",
+  html:()=>`<div class="f2"><div class="fld"><label for="altezza">Altezza</label><div class="inp"><input id="altezza" inputmode="numeric" value="${draft.altezza??""}" placeholder="170"><small>cm</small></div></div>
+    <div class="fld"><label for="peso">Peso</label><div class="inp"><input id="peso" inputmode="decimal" value="${draft.peso!=null?String(draft.peso).replace(".",","):""}" placeholder="60"><small>kg</small></div></div></div>`,
+  read:()=>{draft.altezza=Math.round(num($("altezza").value));draft.peso=num($("peso").value);
+    return !(draft.altezza>=120&&draft.altezza<=230)?"Inserisci l'altezza in centimetri, per esempio 170.":!(draft.peso>=35&&draft.peso<=250)?"Inserisci il peso in kg, per esempio 60 o 60,5.":""}},
+ {id:"ob",kicker:"Il tuo obiettivo",q:"Cosa vuoi ottenere?",
+  html:()=>`<div class="opts" role="radiogroup">${opt("obiettivo","massa","Mettere massa muscolare","Più muscoli, crescita graduale","+")}${opt("obiettivo","mantenimento","Restare in forma","Mantenere il peso e tonificare","=")}${opt("obiettivo","dimagrimento","Dimagrire","Perdere grasso mantenendo i muscoli","−")}</div>`,
+  read:()=>!draft.obiettivo?"Scegli un obiettivo.":"" ,auto:"obiettivo"},
+ {id:"att",kicker:"La tua giornata",q:"Quanto ti muovi durante il giorno, palestra a parte?",
+  html:()=>`<div class="opts" role="radiogroup">${opt("attivita","1.4","Poco","Lavoro o studio seduto, mi sposto in auto","1")}${opt("attivita","1.55","Un po'","Cammino, faccio le scale, sto in piedi a tratti","2")}${opt("attivita","1.7","Tanto","Lavoro in piedi o faccio un lavoro fisico","3")}</div>`,
+  read:()=>!draft.attivita?"Scegli una risposta.":"",auto:"attivita"},
+ {id:"ris",result:true}
+];
+const QS=[
+ {k:"esig",multi:true,none:"nessuna",q:"Hai esigenze alimentari particolari?",sub:"Puoi sceglierne più di una. Gli alimenti non adatti spariscono dalla dieta.",
+  o:[["nessuna","Nessuna"],["vegetariano","Vegetariano","Niente carne e pesce"],["vegano","Vegano","Niente prodotti animali"],["celiaco","Celiaco","Solo alimenti senza glutine"],["lattosio","Intollerante al lattosio"],["guscio","Allergia alla frutta a guscio","Anche arachidi"],["pesce","Allergia a pesce e crostacei"],["uova","Allergia alle uova"]]},
+ {k:"colazione",q:"Cosa preferisci a colazione?",o:[["dolce","Dolce","Latte, yogurt, fette biscottate, marmellata"],["salata","Salata","Pane, uova, affettati, avocado"],["alterno","Un po' e un po'","Qualche giorno dolce, qualche giorno salata"],["no","Non faccio colazione","Sposto le calorie sugli altri pasti"]]},
+ {k:"pasti",q:"Quanti pasti fai di solito in una giornata?",o:[["3","3 pasti","Colazione, pranzo e cena"],["4","4 pasti","Anche la merenda"],["5","5 pasti","Spuntino a metà mattina e merenda"]]},
+ {k:"sera",q:"Sei uno che mangia qualcosa prima di andare a letto?",o:[["si","Sì, quasi sempre","Ti preparo uno spuntino serale proteico"],["volte","A volte","Lo metto, ma è facoltativo"],["no","No","Niente dopo cena"]]},
+ {k:"carbo",q:"Quale carboidrato preferisci a pranzo?",o:[["pasta","Pasta","Tutti i giorni, con condimenti diversi"],["riso","Riso e cereali","Riso, riso integrale, quinoa"],["varia","Un po' di tutto","Pasta, riso, farro, gnocchi, cous cous"]]},
+ {k:"noPiace",multi:true,none:"niente",q:"C'è qualcosa che non mangi volentieri?",sub:"Puoi sceglierne più di uno.",
+  o:[["niente","Mangio di tutto"],["pesce","Pesce"],["carnerossa","Carne rossa e affettati"],["legumi","Legumi"],["uova","Uova"],["latticini","Latte e latticini"]]},
+ {k:"polvere",q:"Usi le proteine in polvere?",o:[["si","Sì","Un frullato al giorno, comodo dopo l'allenamento"],["no","No, preferisco il cibo","Al posto del frullato metto yogurt o latticini"]]},
+ {k:"libero",q:"Ti concedi un pasto libero a settimana?",sub:"Pizza, sushi, panino con gli amici: le calorie sono già messe in conto.",o:[["ven","Venerdì sera"],["sab","Sabato sera"],["dom","Domenica a pranzo"],["no","No, niente pasti liberi"]]}
+];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function opt(field,val,title,sub,ico){const on=String(draft[field])===val;
+  return `<button type="button" class="opt" role="radio" aria-checked="${on}" aria-pressed="${on}" data-field="${field}" data-val="${val}"><span class="ico">${ico}</span><b>${title}</b><span>${sub}</span></button>`}
+function steps(){
+  if(mode==="reg")return REG.map(r=>({t:"reg",r})).concat(QS.map(q=>({t:"q",q}))).concat([{t:"end"}]);
+  if(mode==="edit")return REG.filter(r=>!r.result).map(r=>({t:"reg",r}));
+  return QS.map(q=>({t:"q",q})).concat([{t:"end"}]);
 }
-function validate(f,needPeso){
-  if(!f.nome)return "Scrivi il tuo nome.";
-  if(!f.cognome)return "Scrivi il tuo cognome.";
-  if(!(f.eta>=14&&f.eta<=90))return "Inserisci un'età tra 14 e 90 anni.";
-  if(!(f.altezza>=120&&f.altezza<=230))return "Inserisci l'altezza in centimetri, per esempio 170.";
-  if(needPeso&&!(f.peso>=35&&f.peso<=250))return "Inserisci il peso in kg, per esempio 60 o 60,5.";
-  return "";
-}
-function preview(){
-  const f=readForm(), kg=editing?M.lastW(P).kg:f.peso;
-  if(!(f.eta>=14&&f.altezza>=120&&kg>=35)){$("pvK").textContent="—";$("pvP").textContent="Compila età, altezza e peso";return}
-  const c=M.calc({...f,eta:f.eta,etaData:Date.now(),correzione:editing?P.correzione:0,pesi:[{kg}]});
-  $("pvK").textContent=M.fmt(c.kcal)+" kcal";$("pvP").textContent=`${c.prot} g di proteine`;
-}
-$("regForm").addEventListener("input",preview);
-$("regForm").addEventListener("change",preview);
-$("regForm").addEventListener("submit",e=>{
-  e.preventDefault();const f=readForm(),msg=validate(f,!editing);
-  if(msg){$("regErr").textContent=msg;$("regErr").hidden=false;return}
-  $("regErr").hidden=true;
-  if(editing){
-    const old=M.calc(P).kcal;
-    Object.assign(P,{nome:f.nome,cognome:f.cognome,sesso:f.sesso,obiettivo:f.obiettivo,attivita:f.attivita,altezza:f.altezza});
-    if(f.eta!==M.age(P)){P.eta=f.eta;P.etaData=Date.now()}
-    M.save(P);editing=false;show();const nw=M.calc(P).kcal;
-    toast(nw!==old?`Profilo aggiornato. Nuovo obiettivo: ${M.fmt(nw)} kcal`:"Profilo aggiornato.");
-  }else{
-    P={nome:f.nome,cognome:f.cognome,sesso:f.sesso,eta:f.eta,etaData:Date.now(),altezza:f.altezza,obiettivo:f.obiettivo,
-       attivita:f.attivita,correzione:0,creato:Date.now(),pesi:[{d:Date.now(),kg:f.peso}]};
-    if(!M.save(P)){$("regErr").textContent="Non riesco a salvare: controlla di non essere in navigazione privata.";$("regErr").hidden=false;return}
-    show();toast(`Profilo creato. Ciao ${P.nome}!`);
+function renderStep(){
+  const S=steps(), cur=S[step], tot=S.length;
+  $("back").style.visibility=step===0&&mode==="reg"?"hidden":"visible";
+  const qIdx=cur.t==="q"?QS.indexOf(cur.q):-1;
+  $("progT").textContent=cur.t==="q"?`Dieta · domanda ${qIdx+1} di ${QS.length}`:cur.t==="end"?"Fatto":mode==="edit"?`Profilo · ${step+1} di ${tot}`:`Profilo · passo ${Math.min(step+1,5)} di 5`;
+  $("progB").style.width=((step+1)/tot*100)+"%";
+  let h="",btn="Avanti",skip="";
+  if(cur.t==="reg"&&!cur.r.result){const r=cur.r;
+    h=`<span class="kicker">${r.kicker}</span><h1 class="q">${typeof r.q==="function"?r.q():r.q}</h1>${r.sub?`<p class="qsub">${r.sub}</p>`:""}${r.html()}`;
+    if(mode==="edit"&&step===S.length-1)btn="Salva modifiche";
+  }else if(cur.t==="reg"){ // risultato del calcolo
+    const c=M.calc(tmpProfile()),mc=M.macros(c);
+    h=`<span class="kicker">Il tuo calcolo</span><h1 class="q">${esc(draft.nome)}, ecco il tuo obiettivo</h1>
+      <div class="result"><span class="eyebrow" style="color:inherit;opacity:.85">Calorie al giorno · ${M.GOALS[draft.obiettivo].label.toLowerCase()}</span>
+      <div class="big num">${M.fmt(c.kcal)}<small>kcal</small></div>
+      <p class="num">${mc.prot} g di proteine · ${mc.carb} g di carboidrati · ${mc.fat} g di grassi</p></div>
+      <p class="qsub" style="margin:0">Ora 8 domande veloci per costruire una dieta su misura: esigenze alimentari, colazione, pasti, gusti.</p>`;
+    btn="Inizia le domande";
+  }else if(cur.t==="q"){const q=cur.q,val=ans[q.k];
+    h=`<span class="kicker">La tua dieta</span><h1 class="q">${q.q}</h1>${q.sub?`<p class="qsub">${q.sub}</p>`:""}<div class="opts" role="${q.multi?"group":"radiogroup"}">`+
+      q.o.map(([v,t,s])=>{const on=q.multi?((val||[]).length?(val||[]).includes(v):v===q.none&&val!==undefined):String(val)===v;
+        return q.multi?`<button type="button" class="opt compact" aria-pressed="${on}" data-q="${q.k}" data-v="${v}"><div><b>${t}</b>${s?`<br><span>${s}</span>`:""}</div><span class="tick">${CHECK}</span></button>`
+          :`<button type="button" class="opt compact" role="radio" aria-checked="${on}" aria-pressed="${on}" data-q="${q.k}" data-v="${v}"><div><b>${t}</b>${s?`<br><span>${s}</span>`:""}</div><span class="tick">${CHECK}</span></button>`}).join("")+`</div>`;
+    if(!q.multi)btn="";
+  }else{ // fine
+    const prefs=finalPrefs();
+    h=`<span class="kicker">Tutto pronto</span><h1 class="q">La tua dieta è pronta</h1>
+      <p class="qsub" style="margin:0">L'ho costruita sulle tue risposte. Puoi sempre cambiare un alimento toccandolo, o rifare il questionario dalla Home.</p>
+      <div class="chips">${D.prefChips(prefs).map(c=>`<span class="chip soft">${c}</span>`).join("")}</div>`;
+    btn=mode==="reg"?"Vai alla tua dashboard":"Aggiorna la dieta";
   }
-});
-$("regCancel").addEventListener("click",()=>{editing=false;show()});
-$("edit").addEventListener("click",()=>{
-  editing=true;$("nome").value=P.nome;$("cognome").value=P.cognome;$((P.sesso==="F")?"sessoF":"sessoM").checked=true;
-  $("eta").value=M.age(P);$("altezza").value=P.altezza;$({massa:"obM",mantenimento:"obN",dimagrimento:"obD"}[P.obiettivo]).checked=true;
-  $("att").value=String(P.attivita);show();window.scrollTo(0,0);
-});
-
-/* ---------- peso ---------- */
-function openW(){
-  $("wForm").hidden=false;$("wOpen").hidden=true;$("wKg").value="";$("wKg").placeholder=String(M.lastW(P).kg).replace(".",",");
-  $("wDate").value=isoToday();$("wDate").max=isoToday();$("wH").value="";$("wH").placeholder=P.altezza;$("wErr").hidden=true;
-  $("wCard").scrollIntoView({block:"start",behavior:"smooth"});setTimeout(()=>$("wKg").focus(),250);
+  if(mode==="reg"&&cur.t==="reg"&&cur.r.result)skip=`<button class="btn link" type="button" id="skipQ">Salta, rispondo dopo</button>`;
+  $("screen").innerHTML=h+`<p class="err" id="err" hidden></p><div class="flow-bottom">${btn?`<button class="btn primary" type="submit" id="nextBtn">${btn}</button>`:`<p class="note" style="text-align:center">Tocca una risposta per andare avanti</p>`}${skip}</div>`;
+  window.scrollTo(0,0);
+  const first=$("screen").querySelector("input");if(first&&!first.value)setTimeout(()=>first.focus({preventScroll:true}),150);
 }
-document.addEventListener("click",e=>{if(e.target.closest("[data-open-w]"))openW()});
-$("wCancel").addEventListener("click",()=>{$("wForm").hidden=true;$("wOpen").hidden=false});
-$("wForm").addEventListener("submit",e=>{
-  e.preventDefault();const kg=num($("wKg").value),h=$("wH").value?Math.round(num($("wH").value)):null;
-  const d=$("wDate").value?new Date($("wDate").value+"T09:00").getTime():Date.now();
-  if(!(kg>=35&&kg<=250)){$("wErr").textContent="Inserisci il peso in kg, per esempio 61 o 61,4.";$("wErr").hidden=false;return}
-  if(h!==null&&!(h>=120&&h<=230)){$("wErr").textContent="Altezza in centimetri, per esempio 171.";$("wErr").hidden=false;return}
-  const old=M.calc(P).kcal;if(h)P.altezza=h;
-  P.pesi.push({d,kg});P.pesi.sort((a,b)=>a.d-b.d);M.save(P);show();
-  const nw=M.calc(P).kcal, diff=nw-old;
-  toast(diff?`Peso salvato. Obiettivo ${diff>0?"salito":"sceso"} a ${M.fmt(nw)} kcal (${diff>0?"+":""}${diff}).`:"Peso salvato.");
+function tmpProfile(){return {...draft,etaData:Date.now(),correzione:P?P.correzione||0:0,pesi:[{d:Date.now(),kg:draft.peso}]}}
+function finalPrefs(){const p=Object.assign({},D.DEF_PREFS);
+  QS.forEach(q=>{let v=ans[q.k];if(v===undefined)return;if(q.multi)v=v.filter(x=>x!==q.none);if(q.k==="pasti")v=+v;p[q.k]=v});return p}
+function err(t){const e=$("err");e.textContent=t;e.hidden=!t}
+function next(){
+  const S=steps(),cur=S[step];
+  if(cur.t==="reg"&&!cur.r.result){const m=cur.r.read();if(m)return err(m)}
+  if(cur.t==="q"&&cur.q.multi&&!(ans[cur.q.k]||[]).length&&ans[cur.q.k]===undefined)ans[cur.q.k]=[];
+  if(mode==="edit"&&step===S.length-1)return finishEdit();
+  if(cur.t==="end")return finish();
+  step++;renderStep();
+}
+$("screen").addEventListener("submit",e=>{e.preventDefault();next()});
+$("screen").addEventListener("click",e=>{
+  if(e.target.closest("#skipQ")){ans={};return finish()}
+  const o=e.target.closest("[data-field]");
+  if(o){draft[o.dataset.field]=o.dataset.field==="attivita"?+o.dataset.val:o.dataset.val;
+    const S=steps(),cur=S[step];
+    if(cur.r&&cur.r.auto){$("screen").querySelectorAll("[data-field]").forEach(b=>{const on=b===o;b.setAttribute("aria-pressed",on);b.setAttribute("aria-checked",on)});setTimeout(next,180)}
+    else{$("screen").querySelectorAll(`[data-field="${o.dataset.field}"]`).forEach(b=>{const on=b===o;b.setAttribute("aria-pressed",on);b.setAttribute("aria-checked",on)})}
+    return}
+  const b=e.target.closest("[data-q]");if(!b)return;
+  const q=QS.find(x=>x.k===b.dataset.q),v=b.dataset.v;
+  if(q.multi){let a=(ans[q.k]||[]).slice();
+    if(v===q.none)a=[q.none];else{a=a.filter(x=>x!==q.none);a=a.includes(v)?a.filter(x=>x!==v):a.concat(v);
+      if(v==="vegano")a=a.filter(x=>x!=="vegetariano");if(v==="vegetariano")a=a.filter(x=>x!=="vegano")}
+    ans[q.k]=a;renderStep();return}
+  ans[q.k]=v;$("screen").querySelectorAll(`[data-q="${q.k}"]`).forEach(x=>{const on=x===b;x.setAttribute("aria-pressed",on);x.setAttribute("aria-checked",on)});
+  setTimeout(next,200);
 });
-let delArm=-1;
-$("hist").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;const i=+b.dataset.del;
-  if(delArm!==i){delArm=i;b.textContent="Conferma";setTimeout(()=>{if(delArm===i){delArm=-1;show()}},3000);return}
-  delArm=-1;P.pesi.splice(i,1);M.save(P);show();toast("Misurazione eliminata.")});
-
-function chart(pts){
-  const W=320,H=150,L=34,R=12,T=14,B=24;
-  const xs=pts.map(p=>p.d), ys=pts.map(p=>p.kg);
-  let x0=Math.min(...xs),x1=Math.max(...xs);if(x1-x0<7*DAY){x1=x0+7*DAY}
-  let lo=Math.min(...ys),hi=Math.max(...ys);const pad=Math.max(.5,(hi-lo)*.25);lo=Math.floor((lo-pad)*2)/2;hi=Math.ceil((hi+pad)*2)/2;
-  const X=t=>L+(t-x0)/(x1-x0)*(W-L-R), Y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
-  const ticks=[lo,(lo+hi)/2,hi];
-  const line=pts.map((p,i)=>`${i?"L":"M"}${X(p.d).toFixed(1)},${Y(p.kg).toFixed(1)}`).join("");
-  const area=line+`L${X(pts[pts.length-1].d).toFixed(1)},${H-B}L${X(pts[0].d).toFixed(1)},${H-B}Z`;
-  const last=pts[pts.length-1];
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Andamento del peso da ${fmtD(pts[0].d)} a ${fmtD(last.d)}">
-    ${ticks.map(v=>`<line class="grid" x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end">${M.fmt(v,v%1?1:0)}</text>`).join("")}
-    <path class="area" d="${area}"/><path class="ln" d="${line}"/>
-    ${pts.slice(0,-1).map(p=>`<circle class="pt" cx="${X(p.d)}" cy="${Y(p.kg)}" r="3.5"/>`).join("")}
-    <circle class="end" cx="${X(last.d)}" cy="${Y(last.kg)}" r="5.5"/>
-    <text x="${L}" y="${H-6}">${fmtD(pts[0].d)}</text><text x="${W-R}" y="${H-6}" text-anchor="end">${fmtD(last.d)}</text>
-  </svg>`;
+$("back").addEventListener("click",()=>{if(step>0){step--;renderStep()}else{mode="reg";show()}});
+function finish(){
+  const prefs=finalPrefs();
+  if(mode==="reg"){
+    P={nome:draft.nome,cognome:draft.cognome,sesso:draft.sesso,eta:draft.eta,etaData:Date.now(),altezza:draft.altezza,obiettivo:draft.obiettivo,
+       attivita:draft.attivita,correzione:0,creato:Date.now(),pesi:[{d:Date.now(),kg:draft.peso}],dieta:prefs,questionario:Object.keys(ans).length>0};
+    if(!M.save(P)){alertSave();return}
+    try{localStorage.removeItem(D.SEL_KEY)}catch(e){}
+    show();toast(`Benvenuto, ${P.nome}! Ecco la tua dashboard.`);
+  }else{ // questionario rifatto
+    P.dieta=prefs;P.questionario=true;M.save(P);try{localStorage.removeItem(D.SEL_KEY)}catch(e){}
+    show();toast("Dieta aggiornata sulle nuove risposte.");
+  }
 }
-function advice(){
-  const p=P.pesi;if(p.length<2)return "";
-  const first=p[0],last=p[p.length-1],days=(last.d-first.d)/DAY;
-  if(days<21)return `<div class="advice"><p>Servono almeno 3–4 settimane di misurazioni per capire la tendenza. Continua così.</p></div>`;
-  // tendenza sugli ultimi ~60 giorni
-  const from=p.filter(x=>x.d>=last.d-60*DAY)[0]||first, span=Math.max(21,(last.d-from.d)/DAY);
-  const rate=(last.kg-from.kg)/span*30, r=M.fmt(Math.abs(rate),1);
-  const sign=rate>=0?"+":"−";let msg,adj=0;
-  const ob=P.obiettivo;
-  if(ob==="massa"){ if(rate<0.2){msg=`Stai prendendo ${sign}${r} kg al mese: è poco per la massa. Aggiungi circa 150 kcal al giorno.`;adj=150}
-    else if(rate>1){msg=`Stai prendendo ${r} kg al mese: un po' troppo veloce, rischi di accumulare grasso. Togli circa 150 kcal.`;adj=-150}
-    else msg=`Ritmo giusto: ${sign}${r} kg al mese. Continua così.`;}
-  else if(ob==="dimagrimento"){ if(rate>-0.3){msg=`Il peso scende poco (${sign}${r} kg al mese). Togli circa 150 kcal al giorno.`;adj=-150}
-    else if(rate<-1.2){msg=`Stai calando ${r} kg al mese: troppo in fretta, rischi di perdere muscolo. Aggiungi circa 150 kcal.`;adj=150}
-    else msg=`Ritmo giusto: ${sign}${r} kg al mese. Continua così.`;}
-  else { if(Math.abs(rate)>0.5){adj=rate>0?-100:100;msg=`Il peso si sta muovendo (${sign}${r} kg al mese). Correggi di ${adj>0?"+":""}${adj} kcal per restare stabile.`}
-    else msg=`Peso stabile (${sign}${r} kg al mese). Perfetto per il mantenimento.`;}
-  return `<div class="advice ${adj?"act":"ok"}"><p>${msg}</p>${adj?`<div class="btns"><button class="btn small primary" type="button" data-adj="${adj}">Applica ${adj>0?"+":""}${adj} kcal</button></div>`:""}</div>`;
+function finishEdit(){
+  const old=M.calc(P).kcal;
+  Object.assign(P,{nome:draft.nome,cognome:draft.cognome,sesso:draft.sesso,obiettivo:draft.obiettivo,attivita:draft.attivita,altezza:draft.altezza});
+  if(draft.eta!==M.age(P)){P.eta=draft.eta;P.etaData=Date.now()}
+  if(Math.abs(draft.peso-M.lastW(P).kg)>=.05)P.pesi.push({d:Date.now(),kg:draft.peso});
+  M.save(P);show();const nw=M.calc(P).kcal;toast(nw!==old?`Profilo aggiornato. Nuovo obiettivo: ${M.fmt(nw)} kcal`:"Profilo aggiornato.");
 }
-$("advice").addEventListener("click",e=>{const b=e.target.closest("[data-adj]");if(!b)return;
-  P.correzione=(P.correzione||0)+(+b.dataset.adj);P.corrData=Date.now();M.save(P);show();toast(`Fatto: obiettivo ora ${M.fmt(M.calc(P).kcal)} kcal. La dieta si è già adattata.`)});
-$("corrPill").addEventListener("click",()=>{});
+function alertSave(){err("Non riesco a salvare: controlla di non essere in navigazione privata.")}
+function startFlow(m){mode=m;step=0;
+  if(m==="edit")draft={nome:P.nome,cognome:P.cognome,sesso:P.sesso,eta:M.age(P),altezza:P.altezza,peso:M.lastW(P).kg,obiettivo:P.obiettivo,attivita:P.attivita};
+  if(m==="quiz"){const d=Object.assign({},D.DEF_PREFS,P.dieta||{});ans={};QS.forEach(q=>{let v=d[q.k];if(q.multi)v=v&&v.length?v:[q.none];ans[q.k]=q.multi?v:String(v)})}
+  if(m==="reg"){draft={};ans={}}
+  $("flow").hidden=false;$("dash").hidden=true;const n=document.querySelector(".mf-nav");if(n)n.hidden=true;renderStep()}
+$("edit").addEventListener("click",()=>startFlow("edit"));
+$("redoQ").addEventListener("click",()=>startFlow("quiz"));
 
-/* ---------- vista ---------- */
-function show(){
-  const reg=!P||editing;
-  $("reg").hidden=!reg;$("dash").hidden=reg;
-  $("regIntro").hidden=editing;$("editIntro").hidden=!editing;$("pesoWrap").hidden=editing;
-  $("regBtn").textContent=editing?"Salva modifiche":"Crea profilo";$("regCancel").hidden=!editing;
-  document.querySelector(".mf-nav")&&(document.querySelector(".mf-nav").hidden=!P);
-  if(reg){preview();return}
-  const c=M.calc(P),[bl]=M.bmiLabel(c.bmi), last=M.lastW(P), first=P.pesi[0];
-  const h=new Date().getHours();
+/* =================== DASHBOARD =================== */
+function selections(){try{return JSON.parse(localStorage.getItem(D.SEL_KEY)||"null")||{}}catch(e){return {}}}
+function renderDash(){
+  const c=M.calc(P),mc=M.macros(c),[bl,bc]=M.bmiLabel(c.bmi),last=M.lastW(P),first=P.pesi[0];
+  const h=new Date().getHours(),td=(new Date().getDay()+6)%7;
+  $("avatar").textContent=(P.nome[0]+(P.cognome[0]||"")).toUpperCase();
   $("hello").textContent=`${h<13?"Buongiorno":h<18?"Buon pomeriggio":"Buonasera"}, ${P.nome}`;
-  $("goalLabel").textContent=`Obiettivo: ${M.GOALS[P.obiettivo].label.toLowerCase()} · ${c.age} anni · ${P.altezza} cm`;
+  $("today").textContent=fmtD(Date.now(),{weekday:"long",day:"numeric",month:"long"});
+  $("goalName").textContent=M.GOALS[P.obiettivo].label;
   $("kcal").innerHTML=`${M.fmt(c.kcal)}<small>kcal</small>`;
-  $("prot").textContent=c.prot+" g";$("bmi").innerHTML=`${M.fmt(c.bmi,1)} <span class="pill" style="display:inline;margin-left:2px">${bl}</span>`;
-  $("tdee").textContent=M.fmt(Math.round(c.tdee/50)*50);
-  const cp=$("corrPill");cp.hidden=!P.correzione;cp.textContent=`Correzione ${P.correzione>0?"+":""}${P.correzione||0} kcal`;
-  // promemoria mensile
-  const since=Math.floor((Date.now()-last.d)/DAY), due=since>=28;
-  $("remind").hidden=!due;
-  $("remS").textContent=`Ultimo controllo ${since} giorni fa. Pesati al mattino, a digiuno, e registra il peso.`;
+  const tot=mc.prot*4+mc.carb*4+mc.fat*9;
+  $("macro").innerHTML=[["Proteine",mc.prot,mc.prot*4,"--c-prot"],["Carboidrati",mc.carb,mc.carb*4,"--c-carb"],["Grassi",mc.fat,mc.fat*9,"--c-fat"]]
+    .map(([n,g,k,col])=>`<div class="mac"><span>${n}</span><b class="num">${g} g</b><i><em style="width:${Math.round(k/tot*100)}%;background:var(${col})"></em></i></div>`).join("");
+  $("mPeso").textContent=M.fmt(last.kg,last.kg%1?1:0)+" kg";
+  $("mBmi").innerHTML=`${M.fmt(c.bmi,1)}<span class="pill ${bc==="ok"?"":"warn"}">${bl}</span>`;
+  $("mTdee").textContent=M.fmt(Math.round(c.tdee/50)*50)+" kcal";
+  // oggi: menu
+  const plan=D.day(td,P.dieta,(selections()[td])||{},c.kcal);
+  $("tdTitle").textContent=D.dayTitle(plan);
+  $("tdMeals").innerHTML=plan.meals.map(m=>`<li><span>${m.name} · ${m.items.slice(0,2).map(i=>i.name.toLowerCase()).join(", ")}</span><b>${m.kcal} kcal</b></li>`).join("");
+  // oggi: allenamento
+  const w=M.workoutOn(td);
+  if(w){$("twTitle").textContent=w.name;$("twSub").textContent=`Giorno ${w.n} di ${w.of} · ${w.luogo==="casa"?"a casa":"in palestra"} · circa ${w.durata} minuti`;$("twNext").textContent=""}
+  else{$("twTitle").textContent="Giorno di riposo";$("twSub").textContent="I muscoli crescono mentre recuperi: cammina, dormi bene, mangia secondo il piano.";
+    let k=1;while(k<7&&!M.workoutOn((td+k)%7))k++;const nx=M.workoutOn((td+k)%7);$("twNext").textContent=nx?`Prossimo: ${GIORNI[(td+k)%7].toLowerCase()}, ${nx.name.toLowerCase()}`:""}
+  // peso
+  const since=Math.floor((Date.now()-last.d)/DAY),due=since>=28;
+  $("remind").hidden=!due;$("remS").textContent=`Ultimo controllo ${since} giorni fa. Pesati al mattino, a digiuno.`;
   $("next").textContent=due?"Controllo da fare":`Prossimo controllo: ${fmtD(last.d+30*DAY)}`;
   $("wnow").innerHTML=`${M.fmt(last.kg,last.kg%1?1:0)}<small>kg</small>`;
   const dk=Math.round((last.kg-first.kg)*10)/10;
   $("delta").hidden=P.pesi.length<2;$("delta").className="delta num"+(dk<0?" down":"");
   $("delta").textContent=`${dk>0?"+":dk<0?"−":"±"}${M.fmt(Math.abs(dk),1)} kg dal ${fmtD(first.d)}`;
-  $("chartBox").innerHTML=P.pesi.length>=2?chart(P.pesi):`<p class="empty">Ecco il tuo punto di partenza: ${M.fmt(first.kg,first.kg%1?1:0)} kg il ${fmtD(first.d,{day:"numeric",month:"long"})}. Tra un mese registra di nuovo il peso e qui vedrai il grafico.</p>`;
-  $("advice").innerHTML=advice();
-  $("wForm").hidden=true;$("wOpen").hidden=false;
+  $("chartBox").innerHTML=P.pesi.length>=2?chart(P.pesi):`<p class="empty">Punto di partenza: ${M.fmt(first.kg,first.kg%1?1:0)} kg il ${fmtD(first.d,{day:"numeric",month:"long"})}. Tra un mese registra di nuovo il peso e qui vedrai il grafico.</p>`;
+  $("advice").innerHTML=advice();$("wForm").hidden=true;$("wOpen").hidden=false;
   const rows=P.pesi.map((p,i)=>({...p,i})).reverse().slice(0,6);
   $("hist").innerHTML=rows.map(p=>{const prev=P.pesi[p.i-1];const ch=prev?Math.round((p.kg-prev.kg)*10)/10:null;
     return `<li><span class="d">${fmtD(p.d,{day:"numeric",month:"long",year:"numeric"})}</span><b>${M.fmt(p.kg,p.kg%1?1:0)} kg</b>
       ${P.pesi.length>1&&p.i===P.pesi.length-1?`<button class="btn link small" type="button" data-del="${p.i}">Elimina</button>`:`<span class="ch">${ch===null?"inizio":(ch>0?"+":ch<0?"−":"±")+M.fmt(Math.abs(ch),1)}</span>`}</li>`}).join("");
-  $("goD").textContent=`${M.fmt(c.kcal)} kcal al giorno`;
-  try{const S=JSON.parse(localStorage.getItem("myfit-scheda-impostazioni")||"null");if(S)$("goP").textContent=`${S.luogo==="casa"?"A casa":"In palestra"} · ${S.giorni} giorni · ${{massa:"Massa",forza:"Forza",definizione:"Definizione"}[S.tipo]||""}`}catch(e){}
+  // preferenze e profilo
+  $("prefs").innerHTML=P.questionario?D.prefChips(P.dieta).map(t=>`<span class="chip soft">${t}</span>`).join(""):`<p class="note">Non hai ancora risposto alle domande sulla dieta: rispondi per avere un menu su misura.</p>`;
+  $("redoQ").textContent=P.questionario?"Rifai il questionario":"Rispondi alle domande";
   $("prof").innerHTML=[["Nome",P.nome+" "+P.cognome],["Sesso",P.sesso==="F"?"Donna":"Uomo"],["Età",c.age+" anni"],["Altezza",P.altezza+" cm"],
-    ["Obiettivo",M.GOALS[P.obiettivo].label],["Attività",{1.4:"Poco movimento",1.55:"Un po' di movimento",1.7:"Molto attivo"}[P.attivita]||"—"]]
-    .map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
+    ["Obiettivo",M.GOALS[P.obiettivo].label],["Movimento",{1.4:"Poco",1.55:"Un po'",1.7:"Tanto"}[P.attivita]||"—"]]
+    .map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
 }
-let tT;function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(tT);tT=setTimeout(()=>el.hidden=true,3500)}
+function chart(pts){
+  const W=320,H=150,L=34,R=12,T=14,B=24,xs=pts.map(p=>p.d),ys=pts.map(p=>p.kg);
+  let x0=Math.min(...xs),x1=Math.max(...xs);if(x1-x0<7*DAY)x1=x0+7*DAY;
+  let lo=Math.min(...ys),hi=Math.max(...ys);const pad=Math.max(.5,(hi-lo)*.25);lo=Math.floor((lo-pad)*2)/2;hi=Math.ceil((hi+pad)*2)/2;
+  const X=t=>L+(t-x0)/(x1-x0)*(W-L-R),Y=v=>T+(hi-v)/(hi-lo)*(H-T-B),ticks=[lo,(lo+hi)/2,hi];
+  const line=pts.map((p,i)=>`${i?"L":"M"}${X(p.d).toFixed(1)},${Y(p.kg).toFixed(1)}`).join("");
+  const area=line+`L${X(pts[pts.length-1].d).toFixed(1)},${H-B}L${X(pts[0].d).toFixed(1)},${H-B}Z`,last=pts[pts.length-1];
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Andamento del peso">
+    ${ticks.map(v=>`<line class="grid" x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end">${M.fmt(v,v%1?1:0)}</text>`).join("")}
+    <path class="area" d="${area}"/><path class="ln" d="${line}"/>
+    ${pts.slice(0,-1).map(p=>`<circle class="pt" cx="${X(p.d)}" cy="${Y(p.kg)}" r="3.5"/>`).join("")}
+    <circle class="end" cx="${X(last.d)}" cy="${Y(last.kg)}" r="5.5"/>
+    <text x="${L}" y="${H-6}">${fmtD(pts[0].d)}</text><text x="${W-R}" y="${H-6}" text-anchor="end">${fmtD(last.d)}</text></svg>`;
+}
+function advice(){
+  const p=P.pesi;if(p.length<2)return "";
+  const first=p[0],last=p[p.length-1],days=(last.d-first.d)/DAY;
+  if(days<21)return `<div class="advice"><p>Servono almeno 3–4 settimane di misurazioni per capire la tendenza. Continua così.</p></div>`;
+  const from=p.filter(x=>x.d>=last.d-60*DAY)[0]||first,span=Math.max(21,(last.d-from.d)/DAY);
+  const rate=(last.kg-from.kg)/span*30,r=M.fmt(Math.abs(rate),1),sign=rate>=0?"+":"−";let msg,adj=0;
+  if(P.obiettivo==="massa"){if(rate<0.2){msg=`Stai prendendo ${sign}${r} kg al mese: è poco per la massa. Aggiungi circa 150 kcal al giorno.`;adj=150}
+    else if(rate>1){msg=`Stai prendendo ${r} kg al mese: un po' troppo veloce. Togli circa 150 kcal.`;adj=-150}else msg=`Ritmo giusto: ${sign}${r} kg al mese. Continua così.`}
+  else if(P.obiettivo==="dimagrimento"){if(rate>-0.3){msg=`Il peso scende poco (${sign}${r} kg al mese). Togli circa 150 kcal al giorno.`;adj=-150}
+    else if(rate<-1.2){msg=`Stai calando ${r} kg al mese: troppo in fretta. Aggiungi circa 150 kcal.`;adj=150}else msg=`Ritmo giusto: ${sign}${r} kg al mese. Continua così.`}
+  else{if(Math.abs(rate)>0.5){adj=rate>0?-100:100;msg=`Il peso si sta muovendo (${sign}${r} kg al mese). Correggi di ${adj>0?"+":""}${adj} kcal.`}else msg=`Peso stabile (${sign}${r} kg al mese). Perfetto.`}
+  return `<div class="advice ${adj?"act":"ok"}"><p>${msg}</p>${adj?`<div><button class="btn small primary" type="button" data-adj="${adj}">Applica ${adj>0?"+":""}${adj} kcal</button></div>`:""}</div>`;
+}
+$("advice").addEventListener("click",e=>{const b=e.target.closest("[data-adj]");if(!b)return;P.correzione=(P.correzione||0)+(+b.dataset.adj);M.save(P);renderDash();toast(`Fatto: obiettivo ora ${M.fmt(M.calc(P).kcal)} kcal. La dieta si è già adattata.`)});
+function openW(){$("wForm").hidden=false;$("wOpen").hidden=true;$("wKg").value="";$("wKg").placeholder=String(M.lastW(P).kg).replace(".",",");
+  $("wDate").value=isoToday();$("wDate").max=isoToday();$("wH").value="";$("wH").placeholder=P.altezza;$("wErr").hidden=true;
+  $("wCard").scrollIntoView({block:"start",behavior:"smooth"});setTimeout(()=>$("wKg").focus(),250)}
+document.addEventListener("click",e=>{if(e.target.closest("[data-open-w]"))openW()});
+$("wCancel").addEventListener("click",()=>{$("wForm").hidden=true;$("wOpen").hidden=false});
+$("wForm").addEventListener("submit",e=>{e.preventDefault();const kg=num($("wKg").value),hh=$("wH").value?Math.round(num($("wH").value)):null;
+  const d=$("wDate").value?new Date($("wDate").value+"T09:00").getTime():Date.now();
+  if(!(kg>=35&&kg<=250)){$("wErr").textContent="Inserisci il peso in kg, per esempio 61 o 61,4.";$("wErr").hidden=false;return}
+  if(hh!==null&&!(hh>=120&&hh<=230)){$("wErr").textContent="Altezza in centimetri, per esempio 171.";$("wErr").hidden=false;return}
+  const old=M.calc(P).kcal;if(hh)P.altezza=hh;P.pesi.push({d,kg});P.pesi.sort((a,b)=>a.d-b.d);M.save(P);renderDash();
+  const nw=M.calc(P).kcal,diff=nw-old;toast(diff?`Peso salvato. Obiettivo ${diff>0?"salito":"sceso"} a ${M.fmt(nw)} kcal (${diff>0?"+":""}${diff}).`:"Peso salvato.")});
+let delArm=-1;
+$("hist").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;const i=+b.dataset.del;
+  if(delArm!==i){delArm=i;b.textContent="Conferma";setTimeout(()=>{if(delArm===i){delArm=-1;renderDash()}},3000);return}
+  delArm=-1;P.pesi.splice(i,1);M.save(P);renderDash();toast("Misurazione eliminata.")});
 
+let tT;function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(tT);tT=setTimeout(()=>el.hidden=true,3500)}
+function show(){
+  const nav=document.querySelector(".mf-nav");
+  if(!P){$("dash").hidden=true;if(nav)nav.hidden=true;startFlow("reg");return}
+  $("flow").hidden=true;$("dash").hidden=false;if(nav)nav.hidden=false;renderDash();window.scrollTo(0,0);
+}
 M.nav("home");show();
 </script>
 </body>

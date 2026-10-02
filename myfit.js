@@ -41,6 +41,13 @@
     document.body.appendChild(n);
   }
   const fmt=(n,d=0)=>Number(n).toLocaleString("it-IT",{minimumFractionDigits:d,maximumFractionDigits:d});
-  window.MyFit={load,save,calc,age,lastW,bmiLabel,nav,fmt,GOALS,ACT,BASE_KCAL:2600};
+  // nomi dei giorni di allenamento (stessi della pagina Palestra)
+  const SPLIT_NAMES={2:["Total body A","Total body B"],3:["Petto e tricipiti","Schiena e bicipiti","Gambe e spalle"],
+    4:["Petto e tricipiti","Gambe e glutei","Schiena e bicipiti","Spalle e addome"],5:["Petto","Schiena","Gambe","Spalle e addome","Braccia"]};
+  const WHEN={2:[0,3],3:[0,2,4],4:[0,1,3,4],5:[0,1,2,3,4]};
+  function scheda(){let S={luogo:"palestra",giorni:3,tipo:"massa",durata:60};try{Object.assign(S,JSON.parse(localStorage.getItem("myfit-scheda-impostazioni")||"null")||{})}catch(e){}return S}
+  function workoutOn(d){const S=scheda(),i=WHEN[S.giorni].indexOf(d);return i<0?null:{name:SPLIT_NAMES[S.giorni][i],n:i+1,of:S.giorni,luogo:S.luogo,tipo:S.tipo,durata:S.durata}}
+  function macros(c){const fat=Math.round(c.kcal*.25/9), carb=Math.round((c.kcal-c.prot*4-fat*9)/4);return {prot:c.prot,fat,carb}}
+  window.MyFit={load,save,calc,age,lastW,bmiLabel,nav,fmt,GOALS,ACT,BASE_KCAL:2600,scheda,workoutOn,macros};
 })();
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{scope:"./"}).catch(()=>{}));

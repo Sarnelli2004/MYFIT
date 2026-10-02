@@ -13,6 +13,7 @@
 <link rel="icon" href="icona-myfit-192.png">
 <title>Dieta · MyFit</title>
 <script src="myfit.js"></script>
+<script src="dieta.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <style>
@@ -152,175 +153,63 @@ img{max-width:100%}
 </div>
 
 <script>
-// kcal e proteine per 100 g (o 100 ml); u = peso di un'unità per il conteggio
-const F = {
-  avena:["Fiocchi d'avena",372,13.5], corn:["Corn flakes",378,7], fette:["Fette biscottate",410,11,8,"fetta","fette"],
-  muesli:["Muesli senza zucchero",360,10], biscotti:["Biscotti secchi",420,7,8,"biscotto","biscotti"],
-  gallette:["Gallette di riso",380,8,8,"galletta","gallette"], paneint:["Pane integrale",250,9,30,"fetta","fette"],
-  pane:["Pane comune",260,8,30,"fetta","fette"], piadina:["Piadina",300,8,100,"piadina","piadine"],
-  latte:["Latte parz. scremato",46,3.3,0,"","","ml"], soia:["Bevanda di soia",40,3.3,0,"","","ml"],
-  greco:["Yogurt greco 0%",57,10,170,"vasetto","vasetti"], yogurt:["Yogurt bianco intero",66,3.8,125,"vasetto","vasetti"],
-  skyr:["Skyr",63,11,150,"vasetto","vasetti"], kefir:["Kefir",50,3.5,0,"","","ml"],
-  banana:["Banana",89,1.1,120,"banana","banane"], mela:["Mela",52,.3,180,"mela","mele"], pera:["Pera",57,.4,170,"pera","pere"],
-  arancia:["Arancia",47,.9,150,"arancia","arance"], kiwi:["Kiwi",61,1.1,75,"kiwi","kiwi"], fragole:["Fragole",32,.7],
-  mirtilli:["Mirtilli",57,.7], uva:["Uva",69,.7],
-  miele:["Miele",304,.3,7,"cucchiaino","cucchiaini"], marmellata:["Marmellata",250,.5,10,"cucchiaino","cucchiaini"],
-  cioc:["Cioccolato fondente 70%",600,8,5,"quadratino","quadratini"],
-  mandorle:["Mandorle",600,21], noci:["Noci",654,15,5,"gheriglio","gherigli"], anacardi:["Anacardi",553,18],
-  nocciole:["Nocciole",628,15], pistacchi:["Pistacchi sgusciati",560,20],
-  arachidi:["Burro d'arachidi",590,25,15,"cucchiaio","cucchiai"], cremamand:["Crema di mandorle",610,21,15,"cucchiaio","cucchiai"],
-  avocado:["Avocado",160,2], spalm:["Formaggio spalmabile light",150,10],
-  pasta:["Pasta",355,12], pastaint:["Pasta integrale",340,13], riso:["Riso basmati",350,7.5], risoint:["Riso integrale",360,7.5],
-  farro:["Farro",335,15], cous:["Cous cous",360,12], quinoa:["Quinoa",368,14], patate:["Patate",77,2],
-  gnocchi:["Gnocchi di patate",150,4],
-  pollo:["Petto di pollo",110,23], tacchino:["Fesa di tacchino",107,24], manzo:["Manzo magro",120,21],
-  merluzzo:["Merluzzo",80,17], orata:["Orata",120,20], salmone:["Salmone",185,20], tonno:["Tonno al naturale",103,24,56,"scatoletta","scatolette"],
-  uova:["Uova intere",143,12.5,60,"uovo","uova"], albume:["Albume",52,11,0,"","","ml"], bresaola:["Bresaola",151,32],
-  fiocchi:["Fiocchi di latte",98,11,150,"vasetto","vasetti"], lenticchie:["Lenticchie secche",325,23], ceci:["Ceci in scatola",120,7],
-  tofu:["Tofu",120,13],
-  zucchine:["Zucchine",17,1.2], insalata:["Insalata mista",18,1.5], pomodori:["Pomodorini",18,.9], broccoli:["Broccoli",34,2.8],
-  spinaci:["Spinaci",23,2.9], carote:["Carote",41,.9], fagiolini:["Fagiolini",31,1.8], peperoni:["Peperoni",26,1],
-  olio:["Olio extravergine",899,0,10,"cucchiaio","cucchiai"], parmigiano:["Parmigiano",392,33,10,"cucchiaio","cucchiai"],
-  pesto:["Pesto",450,5,15,"cucchiaio","cucchiai"], passata:["Sugo di pomodoro",45,1.3],
-  ragu:["Ragù di carne",150,9], sugotonno:["Sugo al tonno",130,11], pomolio:["Sugo di pomodorini con olio",60,1],
-  whey:["Proteine whey",380,80,30,"misurino","misurini"], isolata:["Whey isolata",370,88,30,"misurino","misurini"],
-  pizza:["Pizza margherita",260,11,330,"pizza","pizze"], pizzaprosc:["Pizza prosciutto e funghi",250,12,350,"pizza","pizze"],
-  kebab:["Kebab nella piadina",230,12,350,"kebab","kebab"], sushi:["Sushi misto",150,6,30,"pezzo","pezzi"],
-  hamburger:["Panino con hamburger",260,13,250,"panino","panini"], piadfarc:["Piadina farcita",290,12,250,"piadina","piadine"],
-  cotto:["Prosciutto cotto",136,20], crudo:["Prosciutto crudo",224,26], tacchinoaff:["Fesa di tacchino affettata",110,22],
-  salmaff:["Salmone affumicato",147,25], ricotta:["Ricotta",146,9], hummus:["Hummus",250,7,15,"cucchiaio","cucchiai"],
-  spremuta:["Spremuta d'arancia",44,.7,200,"bicchiere","bicchieri","ml"],
-  veg:["Proteine vegetali",380,75,30,"misurino","misurini"]
-};
-const CARB_C=["pane","paneint","fette","avena","corn","muesli","biscotti","gallette"];
-const LATTE=["latte","soia","greco","yogurt","skyr","kefir"];
-const FRUTTA=["banana","mela","pera","arancia","kiwi","fragole","mirtilli","uva"];
-const DOLCE=["miele","marmellata","cioc"];
-const SECCA=["mandorle","noci","anacardi","nocciole","pistacchi","arachidi"];
-const CARB_P=["pasta","pastaint","riso","risoint","farro","cous","quinoa","gnocchi","patate"];
-const PROT=["pollo","tacchino","manzo","merluzzo","orata","salmone","tonno","uova","albume","bresaola","fiocchi","lenticchie","ceci","tofu"];
-const VERD=["zucchine","pomodori","insalata","broccoli","spinaci","carote","fagiolini","peperoni"];
-const COND=["olio","ragu","sugotonno","pesto","passata","pomolio","parmigiano","avocado"];
-const SHAKE=["whey","isolata","veg","greco","skyr"];
-const PANE=["paneint","pane","gallette","fette","piadina"];
-const SPALM=["arachidi","cremamand","avocado","spalm"];
-const SERA_L=["greco","yogurt","latte","skyr","fiocchi","kefir"];
-const SAL_PANE=["pane","paneint","fette","gallette","piadina"];
-const SAL_P=["uova","cotto","crudo","tacchinoaff","bresaola","salmaff","fiocchi","ricotta","spalm"];
-const FRUTTA_S=["spremuta",...FRUTTA];
-const SAL_C=["olio","avocado","parmigiano","hummus"];
-const FUORI=["pizza","pizzaprosc","kebab","sushi","hamburger","piadfarc"];
-const SERA_X=["biscotti","noci","mandorle","cioc","miele","fette","banana","mela"];
-
-// pasti: [nome, [[categoria, kcal, lista]], nota?]
-const STD=[
-  ["Colazione",[["Pane o cereali",250,CARB_C],["Latte o yogurt",140,LATTE],["Frutta",105,FRUTTA],["Marmellata o dolce",45,DOLCE]]],
-  ["Spuntino",[["Frutta",80,FRUTTA],["Frutta secca",160,SECCA]]],
-  ["Pranzo",[["Pasta o cereali",430,CARB_P],["Proteine",110,PROT],["Verdure",50,VERD],["Condimento della pasta",135,COND]]],
-  ["Merenda",[["Frullato proteico",120,SHAKE],["Pane o simili",120,PANE],["Da spalmare",90,SPALM]]],
-  ["Cena",[["Proteine",110,PROT],["Carboidrati",230,CARB_P],["Pane",50,PANE],["Verdure",50,VERD],["Condimento",120,COND]]],
-  ["Prima di dormire",[["Yogurt o latte",120,SERA_L],["Extra",80,SERA_X]]]
-];
-const FRI=[
-  STD[0], STD[1],
-  ["Pranzo",[["Pasta o cereali",330,CARB_P],["Proteine",110,PROT],["Verdure",50,VERD],["Condimento della pasta",110,COND]],"Un po' più leggero per lasciare spazio alla serata."],
-  ["Merenda",[["Frullato proteico",120,SHAKE],["Pane o simili",100,PANE],["Da spalmare",80,SPALM]]],
-  ["Cena fuori",[["Pasto libero",900,FUORI]],"Scegli una cosa e goditi la serata, senza pesare niente. Una birra media vale circa 215 kcal, un cocktail circa 200."]
-];
-const SALTY=["Colazione",[["Pane",250,SAL_PANE],["Salato",140,SAL_P],["Frutta o spremuta",105,FRUTTA_S],["Condimento",45,SAL_C]],null,"0s"];
-const SALTY_DAYS=[2,5,6];
-const baseFor=d=>d===4?FRI:STD;
-const mealsFor=d=>{const b=baseFor(d).slice();if(sel[d]&&sel[d].style==="salata")b[0]=SALTY;return b};
-const keyOf=(m,i)=>m[3]||String(i);
-// menu predefinito della settimana: [colazione, spuntino, pranzo, merenda, cena, sera]
-const WEEK=[
-  {t:"Pasta zucchine e pollo · merluzzo e patate",m:[["pane","latte","banana","marmellata"],["mela","mandorle"],["pasta","pollo","zucchine","olio"],["whey","paneint","arachidi"],["merluzzo","patate","pane","pomodori","olio"],["greco","biscotti"]]},
-  {t:"Pasta al pomodoro e tonno · tacchino e riso",m:[["fette","greco","kiwi","miele"],["pera","noci"],["pasta","tonno","pomodori","passata"],["whey","gallette","cremamand"],["tacchino","riso","pane","zucchine","olio"],["latte","biscotti"]]},
-  {t:"Pasta zucchine e uova · salmone e patate",m:[["corn","yogurt","fragole","miele"],["banana","anacardi"],["pasta","uova","zucchine","parmigiano"],["whey","paneint","spalm"],["salmone","patate","pane","insalata","olio"],["greco","noci"]]},
-  {t:"Pasta al pesto e pollo · manzo e patate",m:[["pane","latte","banana","marmellata"],["arancia","nocciole"],["pasta","pollo","pomodori","pesto"],["whey","fette","arachidi"],["manzo","patate","pane","insalata","olio"],["skyr","cioc"]]},
-  {t:"Pasta ai pomodorini · cena fuori con gli amici",m:[["fette","greco","mirtilli","miele"],["mela","pistacchi"],["pasta","pollo","pomodori","pomolio"],["whey","gallette","arachidi"],["pizza"]]},
-  {t:"Pasta al ragù · orata e patate",m:[["biscotti","latte","mela","marmellata"],["uva","mandorle"],["pasta","manzo","insalata","ragu"],["whey","piadina","avocado"],["orata","patate","pane","pomodori","olio"],["latte","biscotti"]]},
-  {t:"Pasta al sugo di tonno · frittata e patate",m:[["paneint","yogurt","kiwi","cioc"],["kiwi","noci"],["pasta","bresaola","zucchine","sugotonno"],["whey","paneint","cremamand"],["uova","patate","pane","zucchine","olio"],["greco","miele"]]}
-];
-const PROF=(window.MyFit&&MyFit.load())||null, CALC=PROF?MyFit.calc(PROF):null;
-const TARGET=CALC?CALC.kcal:2600, KF=TARGET/2600, K=v=>Math.round(v*KF);
+const D=window.Dieta, PROF=(window.MyFit&&MyFit.load())||null, CALC=PROF?MyFit.calc(PROF):null;
+const PREFS=Object.assign({},D.DEF_PREFS,(PROF&&PROF.dieta)||{}), TARGET=CALC?CALC.kcal:2600;
 const DAYS=["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
-
-function portion(id,kcal){
-  const [name,k,p,u,s,pl,unit]=F[id];
-  let g=kcal/k*100;
-  g = g<20 ? Math.max(1,Math.round(g)) : Math.round(g/5)*5;
-  const realK=Math.round(g*k/100), prot=Math.round(g*p/10)/10;
-  let count="";
-  if(u){const c=Math.round(g/u*2)/2; if(c>=0.5) count="≈ "+fmtN(c)+" "+(c<=1?s:pl);}
-  return {name,g,unit:unit||"g",kcal:realK,prot,count};
-}
-const fmtN=n=>String(n).replace(".",",");
-const fmtK=n=>n.toLocaleString("it-IT");
-
-// stato
-let day=(new Date().getDay()+6)%7, sel={};
-const SALW=[["pane", "cotto", "arancia", "olio"], ["fette", "tacchinoaff", "kiwi", "avocado"], ["paneint", "uova", "spremuta", "olio"], ["pane", "fiocchi", "mela", "olio"], ["gallette", "bresaola", "mirtilli", "avocado"], ["pane", "crudo", "kiwi", "olio"], ["paneint", "salmaff", "arancia", "avocado"]];
-function defaults(d){const o={style:SALTY_DAYS.includes(d)?"salata":"dolce"};baseFor(d).forEach((m,i)=>m[1].forEach((c,j)=>o[i+"-"+j]=WEEK[d].m[i][j]));SALTY[1].forEach((c,j)=>o["0s-"+j]=SALW[d][j]);return o}
-function load(){try{const s=JSON.parse(localStorage.getItem("pp2600v4")||"null");if(s&&typeof s==="object")sel=s}catch(e){}
-  DAYS.forEach((_,d)=>{sel[d]=Object.assign(defaults(d),sel[d]||{})})}
-function save(){try{localStorage.setItem("pp2600v4",JSON.stringify(sel))}catch(e){}}
-
+const fmtN=n=>String(n).replace(".",","), fmtK=n=>n.toLocaleString("it-IT");
+let day=(new Date().getDay()+6)%7, sel={}, plan=null;
+function load(){try{const s=JSON.parse(localStorage.getItem(D.SEL_KEY)||"null");if(s&&typeof s==="object")sel=s}catch(e){}DAYS.forEach((_,d)=>{sel[d]=sel[d]||{}})}
+function save(){try{localStorage.setItem(D.SEL_KEY,JSON.stringify(sel))}catch(e){}}
 const $=id=>document.getElementById(id);
 function render(){
   $("days").innerHTML=DAYS.map((d,i)=>`<button type="button" data-d="${i}" aria-pressed="${i===day}">${d}</button>`).join("");
-  let tot=0,prot=0;
-  $("daynote").textContent=WEEK[day].t;
-  $("meals").innerHTML=mealsFor(day).map((m,i)=>{
-    let mk=0, target=m[1].reduce((a,c)=>a+K(c[1]),0);
-    const rows=m[1].map((c,j)=>{
-      const k=keyOf(m,i)+"-"+j, p=portion(sel[day][k],K(c[1])); mk+=p.kcal; prot+=p.prot;
-      return `<button class="slot" type="button" data-s="${k}">
-        <span class="cat">${c[0]}</span>
-        <span class="food">${p.name} <em class="num">${p.g} ${p.unit}</em></span>
-        <span class="unit">${p.count||"&nbsp;"}</span>
-        <span class="right"><span class="num">${p.kcal} kcal</span><i class="chev"></i></span>
-      </button>`}).join("");
-    tot+=mk;
-    return `<section class="meal"><div class="meal-head"><h2>${m[0]}</h2>${i===0?`<span class="seg" role="group" aria-label="Tipo di colazione"><button type="button" data-style="dolce" aria-pressed="${sel[day].style!=="salata"}">Dolce</button><button type="button" data-style="salata" aria-pressed="${sel[day].style==="salata"}">Salata</button></span>`:""}
-      <span class="k num ${Math.abs(mk-target)<=15?"ok":""}">${mk} / ${target} kcal</span></div>${m[2]?`<p class="mnote">${m[2]}</p>`:""}
+  plan=D.day(day,PREFS,sel[day],TARGET);
+  $("daynote").textContent=D.dayTitle(plan);
+  $("meals").innerHTML=plan.meals.map(m=>{
+    const rows=m.items.map(it=>`<button class="slot" type="button" data-s="${it.key}">
+        <span class="cat">${it.cat}</span>
+        <span class="food">${it.name} <em class="num">${it.g} ${it.unit}</em></span>
+        <span class="unit">${it.count||"&nbsp;"}</span>
+        <span class="right"><span class="num">${it.kcal} kcal</span><i class="chev"></i></span>
+      </button>`).join("");
+    const isCol=m.id==="colazione"||m.id==="salata";
+    return `<section class="meal"><div class="meal-head"><h2>${m.name}</h2>${isCol?`<span class="seg" role="group" aria-label="Tipo di colazione"><button type="button" data-style="dolce" aria-pressed="${m.style!=="salata"}">Dolce</button><button type="button" data-style="salata" aria-pressed="${m.style==="salata"}">Salata</button></span>`:""}
+      <span class="k num ${Math.abs(m.kcal-m.target)<=15?"ok":""}">${m.kcal} / ${m.target} kcal</span></div>${m.note?`<p class="mnote">${m.note}</p>`:""}
       <div class="list">${rows}</div></section>`}).join("");
-  $("tot").innerHTML=`${fmtK(tot)}<small>/ ${fmtK(TARGET)} kcal</small>`;
-  $("prot").textContent=Math.round(prot)+" g";
-  $("barfill").style.width=Math.min(100,tot/TARGET*100)+"%";
+  $("tot").innerHTML=`${fmtK(plan.kcal)}<small>/ ${fmtK(TARGET)} kcal</small>`;
+  $("prot").textContent=plan.prot+" g";
+  $("barfill").style.width=Math.min(100,plan.kcal/TARGET*100)+"%";
 }
-
 let current=null, lastFocus=null;
+function findItem(key){for(const m of plan.meals)for(const it of m.items)if(it.key===key)return [m,it];return [null,null]}
 function openSheet(key){
-  const [pre,jj]=key.split("-"), j=+jj, M=mealsFor(day), i=M.findIndex((m,x)=>keyOf(m,x)===pre), c=M[i][1][j];
-  current=key; lastFocus=document.activeElement;
-  $("sh-title").textContent=`${M[i][0]} · ${c[0]}`;
-  $("sh-sub").textContent=`Ogni alternativa vale circa ${K(c[1])} kcal`;
-  $("opts").innerHTML=c[2].map(id=>{const p=portion(id,K(c[1]));
-    return `<button class="opt" type="button" data-f="${id}" aria-current="${sel[day][key]===id}">
+  const [m,it]=findItem(key);if(!it)return;current=key;lastFocus=document.activeElement;
+  $("sh-title").textContent=`${m.name} · ${it.cat}`;
+  $("sh-sub").textContent=`Ogni alternativa vale circa ${it.kcal} kcal`;
+  $("opts").innerHTML=it.list.map(id=>{const p=D.portion(id,it.kcal);
+    return `<button class="opt" type="button" data-f="${id}" aria-current="${it.id===id}">
       <span class="n">${p.name}</span><span class="d num">${p.kcal} kcal · ${fmtN(p.prot)} g proteine</span>
       <span class="g"><b class="num">${p.g} ${p.unit}</b><span>${p.count}</span></span></button>`}).join("");
-  $("scrim").hidden=false; $("close").focus();
+  $("scrim").hidden=false;$("close").focus();
 }
 function closeSheet(){$("scrim").hidden=true;current=null;if(lastFocus)lastFocus.focus()}
-function flash(t){$("msg").textContent=t;clearTimeout(flash.t);flash.t=setTimeout(()=>$("msg").textContent="Grammi a crudo. Le scelte restano salvate in questo browser.",2500)}
-
+const MSG="Grammi a crudo. Le scelte restano salvate su questo telefono.";
+function flash(t){$("msg").textContent=t;clearTimeout(flash.t);flash.t=setTimeout(()=>$("msg").textContent=MSG,2500)}
 $("days").addEventListener("click",e=>{const b=e.target.closest("[data-d]");if(b){day=+b.dataset.d;render()}});
 $("meals").addEventListener("click",e=>{const t=e.target.closest("[data-style]");if(t){sel[day].style=t.dataset.style;save();render();const f=document.querySelector(`[data-style="${t.dataset.style}"]`);if(f)f.focus();return}
   const b=e.target.closest("[data-s]");if(b)openSheet(b.dataset.s)});
 $("opts").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;
-  sel[day][current]=b.dataset.f;save();const k=current;closeSheet();render();
-  const el=document.querySelector(`[data-s="${k}"]`);if(el)el.focus()});
+  sel[day][current]=b.dataset.f;save();const k=current;closeSheet();render();const el=document.querySelector(`[data-s="${k}"]`);if(el)el.focus()});
 $("close").addEventListener("click",closeSheet);
 $("scrim").addEventListener("click",e=>{if(e.target===$("scrim"))closeSheet()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("scrim").hidden)closeSheet()});
-$("reset").addEventListener("click",()=>{sel[day]=defaults(day);save();render();flash(DAYS[day]+": ripristinato il menu della settimana.")});
-
-load();render();
-(function(){const el=document.getElementById("forwho");
-  if(CALC){el.innerHTML=`Calcolata per <b>${PROF.nome}</b>: ${TARGET.toLocaleString("it-IT")} kcal al giorno. Tocca una porzione per cambiare alimento.`;
-    document.getElementById("protT").textContent="≈ "+CALC.prot+" g";}
-  else el.innerHTML=`Dieta base da 2.600 kcal. <a href="index.html">Crea il tuo profilo</a> per avere le calorie su misura.`;})();
+$("reset").addEventListener("click",()=>{sel[day]={};save();render();flash(DAYS[day]+": ripristinato il menu proposto.")});
+load();render();$("msg").textContent=MSG;
+(function(){const el=$("forwho");
+  if(CALC){const ch=(PREFS.esig||[]).map(e=>D.LABELS.esig[e]);
+    el.innerHTML=`Calcolata per <b>${PROF.nome}</b>: ${TARGET.toLocaleString("it-IT")} kcal al giorno${ch.length?" · "+ch.join(", ").toLowerCase():""}. Tocca una porzione per cambiare alimento.`;
+    $("protT").textContent="≈ "+CALC.prot+" g";}
+  else el.innerHTML=`Dieta base da 2.600 kcal. <a href="index.html">Crea il tuo profilo</a> per averla su misura.`;})();
 </script>
 
 <script>MyFit.nav("dieta");</script>

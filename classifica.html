@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f6b4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MyFit">
+<link rel="manifest" href="manifest-myfit.webmanifest">
+<link rel="apple-touch-icon" href="icona-myfit-180.png">
+<link rel="icon" href="icona-myfit-192.png">
+<title>Classifica · MyFit</title>
+<script src="myfit.js"></script>
+<script src="dieta.js"></script>
+<script src="firebase-config.js"></script>
+<script src="punti.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: in alto il tuo livello (oro), poi la classifica online con due schede (Punti, Forza),
+   poi medaglie e record personali, in fondo la tabella dei punti */
+:root{
+  --bg:#f1f3ee; --surface:#ffffff; --ink:#18231c; --muted:#5d6a61; --line:#dce2d8;
+  --accent:#2f6b4f; --accent-soft:#e0ede5; --warm:#d27a2c; --warm-soft:#fbecdc;
+  --gold:#a77a10; --gold-soft:#f6ecd2; --silver:#7c8794; --bronze:#a8643a; --bad:#b4442f;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif; --f-body:"Figtree","Segoe UI",system-ui,sans-serif; color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111613; --surface:#1a201c; --ink:#e6ece7; --muted:#9aa79e; --line:#2a332d; --accent:#7cc4a0; --accent-soft:#1f3128;
+  --warm:#f0a65a; --warm-soft:#33271a; --gold:#e3bf5c; --gold-soft:#332a14; --silver:#b5c0cc; --bronze:#d9925f; --bad:#ec8a72; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111613; --surface:#1a201c; --ink:#e6ece7; --muted:#9aa79e; --line:#2a332d; --accent:#7cc4a0; --accent-soft:#1f3128;
+  --warm:#f0a65a; --warm-soft:#33271a; --gold:#e3bf5c; --gold-soft:#332a14; --silver:#b5c0cc; --bronze:#d9925f; --bad:#ec8a72; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);-webkit-tap-highlight-color:transparent;padding-top:env(safe-area-inset-top,0px)}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 28px;display:flex;flex-direction:column;gap:14px}
+.hero{background:var(--gold-soft);border-radius:20px;padding:18px;display:grid;gap:12px}
+.hero .lv{display:flex;align-items:center;gap:12px}
+.badge{width:52px;height:52px;border-radius:16px;background:var(--gold);color:var(--bg);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:1.4rem;flex:none}
+.hero h1{font-weight:800;font-size:1.5rem;line-height:1.1}
+.hero p{margin:2px 0 0;color:var(--muted);font-size:.88rem}
+.bar{height:8px;border-radius:99px;background:color-mix(in srgb,var(--gold) 20%,transparent);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--gold);border-radius:99px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border-radius:12px;padding:10px;min-width:0}
+.stat span{display:block;font-size:.75rem;color:var(--muted)}
+.stat b{font-family:var(--f-display);font-weight:800;font-size:1.15rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.card h2{font-weight:600;font-size:1.1rem}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{border:0;background:none;border-radius:9px;padding:9px 4px;font-weight:600;font-size:.88rem;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.exs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.exs button{flex:none;border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:7px 12px;font-size:.82rem;font-weight:600;cursor:pointer}
+.exs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.list{list-style:none;margin:0;padding:0;display:grid}
+.list li{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:10px 4px;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0}
+.list li.me{background:var(--accent-soft);border-radius:12px;border-top-color:transparent}
+.pos{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-family:var(--f-display);font-size:.9rem;background:var(--bg);color:var(--muted)}
+.pos.p1{background:var(--gold);color:var(--bg)} .pos.p2{background:var(--silver);color:var(--bg)} .pos.p3{background:var(--bronze);color:var(--bg)}
+.who{min-width:0}
+.who b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who span{font-size:.78rem;color:var(--muted)}
+.val{text-align:right}
+.val b{font-family:var(--f-display);font-weight:800;font-size:1.1rem}
+.val span{display:block;font-size:.75rem;color:var(--muted)}
+.empty{color:var(--muted);background:var(--bg);border-radius:12px;padding:12px;margin:0;font-size:.9rem}
+.btn{border:1px solid var(--line);background:var(--surface);font-weight:600;padding:11px 14px;border-radius:12px;cursor:pointer;text-align:center}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.link{border:0;background:none;color:var(--accent);padding:6px 0}
+.btn.small{padding:7px 11px;font-size:.85rem}
+.inp input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;font-size:1rem;font-weight:600}
+.share{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:.88rem}
+.share li{display:flex;gap:8px}
+.share .y{color:var(--accent);font-weight:800}
+.share .n{color:var(--bad);font-weight:800}
+.medals{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.medal{border-radius:14px;padding:10px 12px;background:var(--bg);display:grid;gap:2px;min-width:0}
+.medal b{font-weight:600;font-size:.9rem}
+.medal span{font-size:.76rem;color:var(--muted)}
+.medal.ok{background:var(--gold-soft)}
+.medal.ok b::before{content:"★ ";color:var(--gold)}
+.medal:not(.ok){opacity:.65}
+.rec{list-style:none;margin:0;padding:0;display:grid}
+.rec li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:.92rem}
+.rec li:first-child{border-top:0}
+.rec li span{color:var(--muted);font-size:.82rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+td{padding:7px 0;border-top:1px solid var(--line)}
+td:last-child{text-align:right;font-weight:600;white-space:nowrap}
+tr:first-child td{border-top:0}
+.note{color:var(--muted);font-size:.82rem;margin:0}
+.err{color:var(--bad);font-size:.88rem;margin:0}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(80px + env(safe-area-inset-bottom,0px));max-width:528px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 14px;font-weight:600;z-index:30}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div class="lv"><div class="badge num" id="lvN"></div><div><h1 id="lvName"></h1><p id="lvNext"></p></div></div>
+    <div class="bar"><span id="lvBar"></span></div>
+    <div class="stats">
+      <div class="stat"><span>Punti totali</span><b class="num" id="sTot"></b></div>
+      <div class="stat"><span>Questa settimana</span><b class="num" id="sWeek"></b></div>
+      <div class="stat"><span>Serie attuale</span><b class="num" id="sStreak"></b></div>
+    </div>
+  </section>
+
+  <section class="card" id="online">
+    <div class="row"><h2>Classifica</h2><button class="btn link" type="button" id="refresh" hidden>Aggiorna</button></div>
+    <div id="onBody"></div>
+  </section>
+
+  <section class="card"><h2>Medaglie</h2><div class="medals" id="medals"></div></section>
+  <section class="card"><h2>I tuoi record</h2><p class="note">Massimale stimato da peso e ripetizioni migliori (formula di Epley).</p><ul class="rec num" id="myRec"></ul></section>
+  <section class="card"><h2>Come si guadagnano i punti</h2>
+    <table class="num"><tbody>
+      <tr><td>Allenamento completato e salvato</td><td>+50</td></tr>
+      <tr><td>Pasto segnato "Fatto" nel diario</td><td>+10</td></tr>
+      <tr><td>Pasto segnato "Diverso"</td><td>+5</td></tr>
+      <tr><td>Tutti i pasti del giorno fatti</td><td>+20</td></tr>
+      <tr><td>Giorno di riposo rispettato</td><td>+10</td></tr>
+      <tr><td>Check-in energia e sonno · 2 litri d'acqua</td><td>+5 · +5</td></tr>
+      <tr><td>Pesata (una ogni 20 giorni)</td><td>+30</td></tr>
+      <tr><td>Settimana con tutti gli allenamenti</td><td>+100</td></tr>
+      <tr><td>Ogni 7 giorni attivi di fila</td><td>+50</td></tr>
+    </tbody></table>
+    <p class="note">I pasti valgono al massimo 50 punti al giorno: conta la costanza, non esagerare.</p>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script>
+const $=id=>document.getElementById(id), Pn=window.Punti, M=window.MyFit;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>Number(n).toLocaleString("it-IT",{maximumFractionDigits:1});
+let tab="punti", period="sett", ex="panca", data=null, leaveArm=false;
+function renderMe(){
+  const c=Pn.compute(),L=c.level;
+  $("lvN").textContent=L.n;$("lvName").textContent=L.name;
+  $("lvNext").textContent=L.next?`Mancano ${fmt(L.to-c.total)} punti per diventare ${L.next}`:"Livello massimo raggiunto";
+  $("lvBar").style.width=L.pct+"%";
+  $("sTot").textContent=fmt(c.total);$("sWeek").textContent=fmt(c.week);$("sStreak").textContent=c.streak+(c.streak===1?" giorno":" giorni");
+  $("medals").innerHTML=Pn.medals().map(m=>`<div class="medal ${m.ok?"ok":""}"><b>${m.n}</b><span>${m.d}</span></div>`).join("");
+  const R=Pn.records(),ids=Object.keys(Pn.REC_EX).filter(i=>R[i]);
+  $("myRec").innerHTML=ids.length?ids.map(i=>`<li><b>${Pn.REC_EX[i]}</b><div style="text-align:right"><b>${fmt(R[i].e1rm)} kg</b><br><span>migliore serie ${fmt(R[i].kg)} kg × ${R[i].reps}</span></div></li>`).join("")
+    :`<li style="border:0"><p class="empty" style="width:100%">Salva un allenamento in palestra segnando i kg: qui compariranno i tuoi record.</p></li>`;
+}
+function renderOnline(){
+  const s=Pn.settings();$("refresh").hidden=!(Pn.cfg()&&s.on);
+  if(!Pn.cfg()){$("onBody").innerHTML=`<p class="empty">La classifica online non è ancora attiva. Quando chi gestisce l'app la collega, qui vedrai i punti e i record di tutti.</p>`;return}
+  if(!s.on){const P=M.load(),def=P?`${P.nome} ${P.cognome?P.cognome[0]+".":""}`:"";
+    $("onBody").innerHTML=`<p style="margin:0">Partecipa alla classifica con gli altri che usano MyFit.</p>
+      <ul class="share"><li><span class="y">✓</span>Condividi: soprannome, punti, livello, serie e record di forza</li>
+      <li><span class="n">✕</span>Non condividi mai: peso, altezza, età, dieta, diario e note</li></ul>
+      <div><label class="note" for="nick">Il tuo soprannome in classifica</label><div class="inp"><input id="nick" maxlength="20" value="${esc(s.nick||def)}"></div></div>
+      <p class="err" id="jErr" hidden></p>
+      <button class="btn primary" type="button" id="join">Partecipa alla classifica</button>
+      <p class="note">Puoi uscire quando vuoi: i tuoi dati in classifica vengono cancellati.</p>`;return}
+  let h=`<div class="seg" role="tablist"><button type="button" data-tab="punti" aria-pressed="${tab==="punti"}">Punti</button><button type="button" data-tab="forza" aria-pressed="${tab==="forza"}">Forza</button></div>`;
+  if(tab==="punti")h+=`<div class="seg"><button type="button" data-per="sett" aria-pressed="${period==="sett"}">Questa settimana</button><button type="button" data-per="sempre" aria-pressed="${period==="sempre"}">Di sempre</button></div>`;
+  else h+=`<div class="exs">${Object.entries(Pn.REC_EX).map(([id,n])=>`<button type="button" data-ex="${id}" aria-pressed="${ex===id}">${n}</button>`).join("")}</div>`;
+  h+=`<ul class="list num" id="list"><li style="border:0"><p class="empty" style="grid-column:1/-1">Carico la classifica…</p></li></ul>
+    <div class="row"><span class="note">In classifica come <b>${esc(s.nick)}</b></span><button class="btn link small" type="button" id="leave">Esci dalla classifica</button></div>`;
+  $("onBody").innerHTML=h;renderList();
+}
+function renderList(){
+  const el=$("list");if(!el)return;if(!data){return}
+  if(data.err){el.innerHTML=`<li style="border:0"><p class="err" style="grid-column:1/-1">${data.err}</p></li>`;return}
+  const wk=Pn.weekKey(Pn.today());let rows;
+  if(tab==="punti")rows=data.rows.map(r=>({...r,v:period==="sett"?(r.sett===wk?r.puntiSett||0:0):r.punti||0})).filter(r=>r.v>0||r.id===data.uid)
+    .sort((a,b)=>b.v-a.v).map(r=>({...r,main:fmt(r.v),unit:"punti",sub:`Livello ${r.livello||1}${r.serie?` · serie ${r.serie} gg`:""}`}));
+  else rows=data.rows.filter(r=>r.record&&r.record[ex]).map(r=>({...r,v:r.record[ex].e1rm})).sort((a,b)=>b.v-a.v)
+    .map(r=>({...r,main:fmt(r.v)+" kg",unit:"massimale stimato",sub:`migliore serie ${fmt(r.record[ex].kg)} kg × ${r.record[ex].reps}`}));
+  if(!rows.length){el.innerHTML=`<li style="border:0"><p class="empty" style="grid-column:1/-1">${tab==="punti"?"Ancora nessun punto questa settimana: sii il primo!":"Nessuno ha ancora un record su questo esercizio."}</p></li>`;return}
+  el.innerHTML=rows.slice(0,50).map((r,i)=>`<li class="${r.id===data.uid?"me":""}"><span class="pos p${i+1}">${i+1}</span>
+    <div class="who"><b>${esc(r.nick||"Anonimo")}${r.id===data.uid?" (tu)":""}</b><span>${r.sub}</span></div>
+    <div class="val"><b>${r.main}</b><span>${r.unit}</span></div></li>`).join("");
+}
+async function load(){
+  if(!Pn.cfg()||!Pn.settings().on)return;data=null;renderOnline();
+  const s=await Pn.sync();
+  try{data=await Pn.board()}catch(e){data={err:"Non riesco a caricare la classifica. Controlla la connessione e riprova."}}
+  if(!s.ok&&!data.err)data.warn=true;renderList();
+}
+document.addEventListener("click",async ev=>{
+  const b=ev.target.closest("button");if(!b)return;
+  if(b.dataset.tab){tab=b.dataset.tab;renderOnline();return}
+  if(b.dataset.per){period=b.dataset.per;renderOnline();return}
+  if(b.dataset.ex){ex=b.dataset.ex;renderOnline();return}
+  if(b.id==="refresh"){load();return}
+  if(b.id==="join"){const nick=$("nick").value.trim();
+    if(nick.length<2){$("jErr").textContent="Scegli un soprannome di almeno 2 caratteri.";$("jErr").hidden=false;return}
+    Pn.saveSettings({on:true,nick:nick.slice(0,20)});b.disabled=true;b.textContent="Mi collego…";
+    const r=await Pn.sync();if(!r.ok){Pn.saveSettings({on:false,nick});renderOnline();$("jErr").textContent="Collegamento non riuscito. Controlla la connessione e riprova.";$("jErr").hidden=false;return}
+    toast("Sei in classifica!");load();return}
+  if(b.id==="leave"){if(!leaveArm){leaveArm=true;b.textContent="Tocca di nuovo per uscire";setTimeout(()=>{leaveArm=false;if(b.isConnected)b.textContent="Esci dalla classifica"},3000);return}
+    leaveArm=false;await Pn.leave();data=null;renderOnline();toast("Sei uscito dalla classifica e i tuoi dati online sono stati cancellati.");return}
+});
+let tT;function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(tT);tT=setTimeout(()=>el.hidden=true,3500)}
+M.nav("classifica");renderMe();renderOnline();load();
+</script>
+</body>
+</html>

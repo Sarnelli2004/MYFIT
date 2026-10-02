@@ -12,6 +12,9 @@
 <link rel="icon" href="icona-myfit-192.png">
 <title>Palestra · MyFit</title>
 <script src="myfit.js"></script>
+<script src="dieta.js"></script>
+<script src="firebase-config.js"></script>
+<script src="punti.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <style>
@@ -441,7 +444,13 @@ $("list").addEventListener("click",e=>{
 $("save").addEventListener("click",()=>{const c=cur(), sets={};
   Object.entries(c).filter(([k])=>k[0]!=="_").forEach(([k,a])=>{const d=(a||[]).filter(x=>x&&x.done).map(x=>({kg:x.kg||"0",reps:x.reps||"0"}));if(d.length)sets[k]=d});
   if(!Object.keys(sets).length){flash("Segna almeno una serie con la spunta prima di salvare.");return}
-  st.hist.push({date:Date.now(),day:st.day,name:DAYS[st.day].name,sets});st.cur[st.day]={};save();stopTimer();render();flash("Allenamento salvato. Ottimo lavoro!")});
+  const before=window.Punti?Punti.records():{};
+  st.hist.push({date:Date.now(),day:st.day,name:DAYS[st.day].name,sets});st.cur[st.day]={};save();stopTimer();render();
+  let msg="Allenamento salvato: +50 punti. Ottimo lavoro!";
+  if(window.Punti){const after=Punti.records(),pr=Object.keys(after).filter(id=>!before[id]||after[id].e1rm>before[id].e1rm);
+    if(pr.length)msg=`Nuovo record: ${pr.map(id=>Punti.REC_EX[id]+" "+String(after[id].e1rm).replace(".",",")+" kg").join(", ")}! +50 punti`;
+    Punti.sync()}
+  flash(msg)});
 let clearArmed=false;
 $("clear").addEventListener("click",e=>{if(!clearArmed){clearArmed=true;e.target.textContent="Tocca di nuovo per svuotare";setTimeout(()=>{clearArmed=false;e.target.textContent="Svuota"},3000);return}
   clearArmed=false;e.target.textContent="Svuota";st.cur[st.day]={};save();render();flash("Seduta svuotata.")});

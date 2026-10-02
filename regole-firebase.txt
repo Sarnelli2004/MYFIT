@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Classifica di MyFit: ognuno legge tutti, ma scrive e cancella solo la propria riga
+    match /classifica/{uid} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nick','punti','puntiSett','sett','livello','serie','record','agg'])
+        && request.resource.data.nick is string
+        && request.resource.data.nick.size() >= 2 && request.resource.data.nick.size() <= 20
+        && request.resource.data.punti is number && request.resource.data.punti >= 0 && request.resource.data.punti < 200000
+        && request.resource.data.puntiSett is number && request.resource.data.puntiSett >= 0 && request.resource.data.puntiSett < 5000;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+    // tutto il resto è chiuso
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

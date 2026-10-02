@@ -13,6 +13,8 @@
 <title>MyFit</title>
 <script src="myfit.js"></script>
 <script src="dieta.js"></script>
+<script src="firebase-config.js"></script>
+<script src="punti.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <style>
@@ -22,7 +24,7 @@
   --bg:#f1f3ee; --surface:#ffffff; --ink:#18231c; --muted:#5d6a61; --line:#dce2d8;
   --accent:#2f6b4f; --accent-soft:#e0ede5; --warm:#d27a2c; --warm-soft:#fbecdc;
   --ok:#2f7a4f; --warn:#b7791f; --bad:#b4442f; --steel:#3b4a5c; --steel-soft:#e4e8ee;
-  --c-prot:#2f6b4f; --c-carb:#d27a2c; --c-fat:#6b7fa0;
+  --c-prot:#2f6b4f; --c-carb:#d27a2c; --c-fat:#6b7fa0; --gold:#a77a10; --gold-soft:#f6ecd2;
   --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --f-body:"Figtree","Segoe UI",system-ui,sans-serif;
   color-scheme:light;
@@ -31,12 +33,12 @@
   --bg:#111613; --surface:#1a201c; --ink:#e6ece7; --muted:#9aa79e; --line:#2a332d;
   --accent:#7cc4a0; --accent-soft:#1f3128; --warm:#f0a65a; --warm-soft:#33271a;
   --ok:#6cc993; --warn:#e3b04f; --bad:#ec8a72; --steel:#a9bbd0; --steel-soft:#232b33;
-  --c-prot:#7cc4a0; --c-carb:#f0a65a; --c-fat:#9db0d0; color-scheme:dark}}
+  --c-prot:#7cc4a0; --c-carb:#f0a65a; --c-fat:#9db0d0; --gold:#e3bf5c; --gold-soft:#332a14; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111613; --surface:#1a201c; --ink:#e6ece7; --muted:#9aa79e; --line:#2a332d;
   --accent:#7cc4a0; --accent-soft:#1f3128; --warm:#f0a65a; --warm-soft:#33271a;
   --ok:#6cc993; --warn:#e3b04f; --bad:#ec8a72; --steel:#a9bbd0; --steel-soft:#232b33;
-  --c-prot:#7cc4a0; --c-carb:#f0a65a; --c-fat:#9db0d0; color-scheme:dark}
+  --c-prot:#7cc4a0; --c-carb:#f0a65a; --c-fat:#9db0d0; --gold:#e3bf5c; --gold-soft:#332a14; color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);-webkit-tap-highlight-color:transparent;padding-top:env(safe-area-inset-top,0px)}
@@ -102,7 +104,7 @@ button,input,select{font:inherit;color:inherit}
 .avatar{width:48px;height:48px;border-radius:50%;background:var(--accent);color:var(--bg);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:1.15rem;flex:none}
 .top h1{font-weight:800;font-size:1.5rem;line-height:1.1}
 .top p{margin:2px 0 0;color:var(--muted);font-size:.88rem}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
 .card h2{font-weight:600;font-size:1.1rem}
 .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
@@ -135,6 +137,17 @@ button,input,select{font:inherit;color:inherit}
 .mlist li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:.92rem}
 .mlist li span{color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mlist li b{font-weight:600;white-space:nowrap}
+.ptsCard{grid-template-columns:auto 1fr auto;align-items:center;text-decoration:none;color:var(--ink);background:var(--gold-soft);border-color:transparent}
+.lvb{width:48px;height:48px;border-radius:14px;background:var(--gold);color:var(--bg);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:1.3rem}
+.pinfo{display:grid;gap:3px;min-width:0}
+.pinfo b{font-family:var(--f-display);font-weight:800;font-size:1.35rem;line-height:1.1}
+.pbar{display:block;height:6px;border-radius:99px;background:color-mix(in srgb,var(--gold) 22%,transparent);overflow:hidden}
+.pbar em{display:block;height:100%;background:var(--gold);border-radius:99px}
+.streak{text-align:center;font-weight:800;font-family:var(--f-display);color:var(--gold);font-size:1.2rem;line-height:1.1}
+.streak small{display:block;font:600 .7rem var(--f-body);color:var(--muted)}
+.diaryCta{grid-template-columns:1fr auto;align-items:center;text-decoration:none;color:var(--ink)}
+.diaryCta b{display:block;font-weight:600}
+.diaryCta .go{font-weight:600;color:var(--accent);font-size:.9rem}
 .remind{background:var(--warm-soft);border-color:transparent;grid-template-columns:1fr auto;align-items:center}
 .remind p{margin:0} .remind b{display:block}
 .wnow{font-family:var(--f-display);font-weight:800;font-size:2.2rem;line-height:1}
@@ -190,6 +203,13 @@ button,input,select{font:inherit;color:inherit}
       <div class="mini"><span>Mantenimento</span><b class="num" id="mTdee"></b></div>
     </div>
   </div>
+
+  <a class="card ptsCard" href="classifica.html">
+    <div class="lvb num" id="pLv"></div>
+    <div class="pinfo"><span class="eyebrow">Livello · <span id="pName"></span></span><b class="num" id="pTot"></b><i class="pbar"><em id="pBar"></em></i><span class="note" id="pNext"></span></div>
+    <div class="streak num" id="pStreak"></div>
+  </a>
+  <a class="card diaryCta" href="diario.html" id="dCta"><div><b id="dTitle">Diario di oggi</b><span class="note" id="dSub"></span></div><span class="go">Apri</span></a>
 
   <div class="card remind" id="remind" hidden>
     <p><b>È ora del controllo mensile</b><span class="note" id="remS"></span></p>
@@ -407,6 +427,14 @@ function renderDash(){
   $("mPeso").textContent=M.fmt(last.kg,last.kg%1?1:0)+" kg";
   $("mBmi").innerHTML=`${M.fmt(c.bmi,1)}<span class="pill ${bc==="ok"?"":"warn"}">${bl}</span>`;
   $("mTdee").textContent=M.fmt(Math.round(c.tdee/50)*50)+" kcal";
+  // punti e diario
+  if(window.Punti){const pc=Punti.compute(),L=pc.level,de=Punti.dayEntry(Punti.today());
+    $("pLv").textContent=L.n;$("pName").textContent=L.name;$("pTot").textContent=M.fmt(pc.total)+" punti";$("pBar").style.width=L.pct+"%";
+    $("pNext").textContent=L.next?`${M.fmt(L.to-pc.total)} al livello ${L.next} · ${M.fmt(pc.week)} questa settimana`:"Livello massimo";
+    $("pStreak").innerHTML=`${pc.streak}<small>giorni di fila</small>`;
+    const nm=Object.keys(de.pasti||{}).length,tot=D.structure(td,P.dieta).length;
+    $("dTitle").textContent=nm>=tot?"Diario di oggi completato":"Diario di oggi";
+    $("dSub").textContent=nm?`${nm} pasti su ${tot} segnati${de.energia?" · check-in fatto":""}`:"Segna pasti, allenamento e come stai: guadagni punti";}
   // oggi: menu
   const plan=D.day(td,P.dieta,(selections()[td])||{},c.kcal);
   $("tdTitle").textContent=D.dayTitle(plan);

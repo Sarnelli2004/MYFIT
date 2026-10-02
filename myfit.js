@@ -22,13 +22,15 @@
   const ICONS={
     home:'<path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4.5v-5.5h-5V21H5a1 1 0 0 1-1-1z"/>',
     dieta:'<path d="M7 3v8a2 2 0 0 0 2 2v8M5 3v5M9 3v5M16 21V3c2.5 1.5 3.5 4 3.5 7.5S18 14 16 14"/>',
-    palestra:'<path d="M3 9.5v5M6 7v10M18 7v10M21 9.5v5M6 12h12"/>'
+    palestra:'<path d="M3 9.5v5M6 7v10M18 7v10M21 9.5v5M6 12h12"/>',
+    diario:'<path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6zM6 3v18M10 8h5M10 12h5"/>',
+    classifica:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/>'
   };
   function nav(active){
     const st=document.createElement("style");
     st.textContent=`.mf-nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
-      display:grid;grid-template-columns:repeat(3,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
-      .mf-nav a{display:grid;justify-items:center;gap:2px;padding:6px 0;border-radius:12px;text-decoration:none;color:var(--muted);font:600 .72rem/1.1 inherit;font-family:inherit}
+      display:grid;grid-template-columns:repeat(5,1fr);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+      .mf-nav a{display:grid;justify-items:center;gap:2px;padding:6px 0;border-radius:12px;text-decoration:none;color:var(--muted);font:600 .68rem/1.1 inherit;font-family:inherit}
       .mf-nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
       .mf-nav a[aria-current="page"]{color:var(--accent)}
       .mf-nav a[aria-current="page"] svg{stroke-width:2.4}
@@ -36,7 +38,7 @@
       body{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}`;
     document.head.appendChild(st);
     const n=document.createElement("nav");n.className="mf-nav";n.setAttribute("aria-label","Sezioni");
-    n.innerHTML=[["home","index.html","Home"],["dieta","pasti.html","Dieta"],["palestra","allenamento.html","Palestra"]]
+    n.innerHTML=[["home","index.html","Home"],["dieta","pasti.html","Dieta"],["palestra","allenamento.html","Palestra"],["diario","diario.html","Diario"],["classifica","classifica.html","Classifica"]]
       .map(([k,h,l])=>`<a href="${h}" ${k===active?'aria-current="page"':""}><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>${l}</a>`).join("");
     document.body.appendChild(n);
   }

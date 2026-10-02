@@ -13,8 +13,10 @@
 <title>Palestra · MyFit</title>
 <script src="myfit.js"></script>
 <script src="dieta.js"></script>
+<script src="sport.js"></script>
 <script src="firebase-config.js"></script>
 <script src="punti.js"></script>
+<script src="anim.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <style>
@@ -94,6 +96,10 @@ button{font:inherit}
 .rt-txt span{font-size:.82rem;color:var(--muted)}
 .dose{font-size:.8rem;font-weight:600;max-width:110px;text-align:center;line-height:1.25;border-radius:99px;padding:6px 10px;border:1px solid var(--accent);color:var(--accent);background:none;cursor:pointer}
 .dose.static{border-color:var(--line);color:var(--muted);cursor:default}
+.switch{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+.switch a{text-align:center;padding:9px;border-radius:10px;font-weight:600;text-decoration:none;color:var(--muted)}
+.switch a[aria-current="page"]{background:var(--steel);color:var(--bg)}
+.sportwarn{margin:0;background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:10px 12px;font-size:.88rem}
 .plan{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:10px}
 .plan-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .plan-top b{display:block;font-family:var(--f-display);font-weight:600;font-size:1.05rem}
@@ -142,6 +148,7 @@ button{font:inherit}
 
 
 <div class="wrap">
+  <nav class="switch" aria-label="Tipo di allenamento"><a href="allenamento.html" aria-current="page">Pesi</a><a href="sport.html">Sport</a></nav>
   <header>
     <h1 id="ptitle">La tua scheda</h1>
     <p class="sub">Scegli giorni, tipo di allenamento e muscoli: la scheda si costruisce da sola.</p>
@@ -376,7 +383,8 @@ function render(){
   $("hero").innerHTML=`<h2>${d.name}</h2>
     <div class="facts"><span class="chip acc">≈ ${minutes(d)} min</span><span class="chip">${d.ex.length} esercizi · ${totalSets} serie</span><span class="chip">Consigliato: ${d.when}</span></div>
     <div class="prog" aria-label="Serie completate"><span style="width:${totalSets?doneSets/totalSets*100:0}%"></span></div>
-    <p class="warm num">${doneSets} di ${totalSets} serie fatte. Si parte dal riscaldamento (${WARM} min) e si chiude con lo stretching (${STR} min).</p>`;
+    <p class="warm num">${doneSets} di ${totalSets} serie fatte. Si parte dal riscaldamento (${WARM} min) e si chiude con lo stretching (${STR} min).</p>`+
+    (window.Sport?(w=>w?`<p class="sportwarn">${w}</p>`:"")(Sport.gymWarning(["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"].indexOf(d.when),d.name)):"");
   $("list").innerHTML=routine("_w","Riscaldamento",WARM,WU(d),"A corpo libero, senza pause: prepara i muscoli del giorno.")+d.ex.map((e,k)=>{
     const rows=c[e[0]]||[], last=lastText(e), allDone=rows.filter(x=>x&&x.done).length>=e[2];
     const sets=Array.from({length:e[2]},(_,s)=>{const r=rows[s]||{};
@@ -449,7 +457,11 @@ $("save").addEventListener("click",()=>{const c=cur(), sets={};
   let msg="Allenamento salvato: +50 punti. Ottimo lavoro!";
   if(window.Punti){const after=Punti.records(),pr=Object.keys(after).filter(id=>!before[id]||after[id].e1rm>before[id].e1rm);
     if(pr.length)msg=`Nuovo record: ${pr.map(id=>Punti.REC_EX[id]+" "+String(after[id].e1rm).replace(".",",")+" kg").join(", ")}! +50 punti`;
-    Punti.sync()}
+    Punti.sync();
+    if(window.MFA){const nSets=Object.values(sets).reduce((a,x)=>a+x.length,0);
+      MFA.celebrate({icon:"check",title:"Allenamento completato!",text:`${DAYS[st.day].name} · ${nSets} serie`,pts:"+50 punti"});
+      pr.forEach(id=>{const was=before[id]?before[id].e1rm:0;MFA.celebrate({icon:"record",title:"Nuovo record!",text:`${Punti.REC_EX[id]} · massimale stimato <b>${String(after[id].e1rm).replace(".",",")} kg</b>${was?`<br>+${String(Math.round((after[id].e1rm-was)*10)/10).replace(".",",")} kg rispetto a prima`:""}`,confetti:true})});
+      MFA.checkMilestones()}}
   flash(msg)});
 let clearArmed=false;
 $("clear").addEventListener("click",e=>{if(!clearArmed){clearArmed=true;e.target.textContent="Tocca di nuovo per svuotare";setTimeout(()=>{clearArmed=false;e.target.textContent="Svuota"},3000);return}

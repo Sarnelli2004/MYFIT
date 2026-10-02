@@ -13,8 +13,10 @@
 <title>MyFit</title>
 <script src="myfit.js"></script>
 <script src="dieta.js"></script>
+<script src="sport.js"></script>
 <script src="firebase-config.js"></script>
 <script src="punti.js"></script>
+<script src="anim.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <style>
@@ -108,6 +110,22 @@ button,input,select{font:inherit;color:inherit}
 .card h2{font-weight:600;font-size:1.1rem}
 .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.kwrap{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;text-decoration:none;color:var(--ink)}
+.ringw{position:relative;width:132px;height:132px}
+.kring{width:132px;height:132px;display:block}
+.kring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.kring .rt{stroke:var(--line)}
+.kring .rf{stroke:var(--accent);stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)}
+.kring .ro{stroke:var(--warm);stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)}
+.goal.win .kring .rf{stroke:var(--gold)}
+.rc{position:absolute;inset:0;display:grid;place-content:center;text-align:center;line-height:1.05}
+.rc span{font-size:.64rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.rc b{font:800 1.75rem var(--f-display);letter-spacing:-.02em}
+.rc small{font-size:.66rem;color:var(--muted)}
+.rside{display:grid;gap:8px;min-width:0}
+.rside b{display:block;font:600 1.02rem var(--f-display)}
+.rside b small{font:600 .75rem var(--f-body);color:var(--warm)}
+@media (prefers-reduced-motion:reduce){.kring .rf,.kring .ro{transition:none}}
 .goal .kc{font-family:var(--f-display);font-weight:800;font-size:2.8rem;line-height:1;letter-spacing:-.02em}
 .goal .kc small{font:600 1rem var(--f-body);color:var(--muted);margin-left:6px}
 .macro{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -194,8 +212,12 @@ button,input,select{font:inherit;color:inherit}
   <div class="top"><div class="avatar" id="avatar"></div><div><h1 id="hello"></h1><p id="today"></p></div></div>
 
   <div class="card goal">
-    <div class="row"><span class="eyebrow">Obiettivo di ogni giorno</span><span class="eyebrow" id="goalName"></span></div>
-    <div class="kc num" id="kcal"></div>
+    <div class="row"><span class="eyebrow">Oggi</span><span class="eyebrow" id="goalName"></span></div>
+    <a class="kwrap" href="diario.html" aria-label="Apri il diario di oggi">
+      <div class="ringw"><svg viewBox="0 0 120 120" class="kring" aria-hidden="true"><circle cx="60" cy="60" r="52" class="rt"/><circle cx="60" cy="60" r="52" class="rf" id="rf" transform="rotate(-90 60 60)"/><circle cx="60" cy="60" r="52" class="ro" id="ro" transform="rotate(-90 60 60)"/></svg>
+        <div class="rc"><span id="rLab">Rimangono</span><b class="num" id="rN">0</b><small class="num" id="rOf"></small></div></div>
+      <div class="rside"><div><span class="eyebrow">Obiettivo</span><b class="num" id="kcal"></b></div><div><span class="eyebrow">Mangiate</span><b class="num" id="rEat"></b></div><div><span class="eyebrow">Proteine</span><b class="num" id="rProt"></b></div></div>
+    </a>
     <div class="macro" id="macro"></div>
     <div class="minis">
       <div class="mini"><span>Peso</span><b class="num" id="mPeso"></b></div>
@@ -420,7 +442,14 @@ function renderDash(){
   $("hello").textContent=`${h<13?"Buongiorno":h<18?"Buon pomeriggio":"Buonasera"}, ${P.nome}`;
   $("today").textContent=fmtD(Date.now(),{weekday:"long",day:"numeric",month:"long"});
   $("goalName").textContent=M.GOALS[P.obiettivo].label;
-  $("kcal").innerHTML=`${M.fmt(c.kcal)}<small>kcal</small>`;
+  const ds=window.Punti?Punti.dayStatus(Punti.today()):null;
+  if(ds){const C=326.7,fill=Math.min(1,ds.eaten/ds.target),over=Math.max(0,Math.min(1,(ds.eaten-ds.target)/ds.target));
+    $("kcal").innerHTML=`${M.fmt(ds.target)} kcal${ds.sport.kcal?` <small>+${ds.sport.kcal} sport</small>`:""}`;$("rEat").textContent=M.fmt(ds.eaten)+" kcal";
+    $("rProt").textContent=ds.prot>=ds.protT?"raggiunte ✓":`ancora ${ds.protT-ds.prot} g`;$("rLab").textContent=ds.left>=0?"Rimangono":"Oltre di";
+    $("rOf").textContent=`di ${M.fmt(ds.target)} kcal`;document.querySelector(".card.goal").classList.toggle("win",Punti.dayVerdict(ds)==="centrata");
+    const go=()=>{$("rf").style.strokeDashoffset=C*(1-fill);$("ro").style.strokeDashoffset=C*(1-over);if(window.MFA)MFA.countUp($("rN"),0,Math.abs(ds.left),900);else $("rN").textContent=M.fmt(Math.abs(ds.left))};
+    $("rf").style.strokeDashoffset=C;$("ro").style.strokeDashoffset=C;$("rN").textContent="0";setTimeout(go,window.__mfDelay||150);}
+  else $("kcal").textContent=M.fmt(c.kcal)+" kcal";
   const tot=mc.prot*4+mc.carb*4+mc.fat*9;
   $("macro").innerHTML=[["Proteine",mc.prot,mc.prot*4,"--c-prot"],["Carboidrati",mc.carb,mc.carb*4,"--c-carb"],["Grassi",mc.fat,mc.fat*9,"--c-fat"]]
     .map(([n,g,k,col])=>`<div class="mac"><span>${n}</span><b class="num">${g} g</b><i><em style="width:${Math.round(k/tot*100)}%;background:var(${col})"></em></i></div>`).join("");
@@ -436,12 +465,15 @@ function renderDash(){
     $("dTitle").textContent=nm>=tot?"Diario di oggi completato":"Diario di oggi";
     $("dSub").textContent=nm?`${nm} pasti su ${tot} segnati${de.energia?" · check-in fatto":""}`:"Segna pasti, allenamento e come stai: guadagni punti";}
   // oggi: menu
-  const plan=D.day(td,P.dieta,(selections()[td])||{},c.kcal);
-  $("tdTitle").textContent=D.dayTitle(plan);
+  const exS=window.Sport?Sport.extraFor(td,Sport.keyOf(Date.now())):{kcal:0};
+  const plan=D.day(td,P.dieta,(selections()[td])||{},c.kcal+exS.kcal);
+  $("tdTitle").textContent=D.dayTitle(plan)+(exS.kcal?` · +${M.fmt(exS.kcal)} kcal per ${exS.label}`:"");
   $("tdMeals").innerHTML=plan.meals.map(m=>`<li><span>${m.name} · ${m.items.slice(0,2).map(i=>i.name.toLowerCase()).join(", ")}</span><b>${m.kcal} kcal</b></li>`).join("");
   // oggi: allenamento
   const w=M.workoutOn(td);
-  if(w){$("twTitle").textContent=w.name;$("twSub").textContent=`Giorno ${w.n} di ${w.of} · ${w.luogo==="casa"?"a casa":"in palestra"} · circa ${w.durata} minuti`;$("twNext").textContent=""}
+  const sp=window.Sport?Sport.onWeekday(td):[], spTxt=sp.map(p=>`${Sport.SPORTS[p.sport].ico} ${Sport.SPORTS[p.sport].n} ${p.durata} min`).join(" · ");
+  if(!w&&sp.length){$("twTitle").textContent=sp.map(p=>Sport.SPORTS[p.sport].n).join(" e ");$("twSub").textContent=spTxt+" · niente pesi oggi";$("twNext").textContent=""}
+  else if(w){$("twTitle").textContent=w.name+(sp.length?" + "+sp.map(p=>Sport.SPORTS[p.sport].n.toLowerCase()).join(" e "):"");$("twSub").textContent=`Giorno ${w.n} di ${w.of} · ${w.luogo==="casa"?"a casa":"in palestra"} · circa ${w.durata} minuti`;$("twNext").textContent=window.Sport?Sport.gymWarning(td,w.name):""}
   else{$("twTitle").textContent="Giorno di riposo";$("twSub").textContent="I muscoli crescono mentre recuperi: cammina, dormi bene, mangia secondo il piano.";
     let k=1;while(k<7&&!M.workoutOn((td+k)%7))k++;const nx=M.workoutOn((td+k)%7);$("twNext").textContent=nx?`Prossimo: ${GIORNI[(td+k)%7].toLowerCase()}, ${nx.name.toLowerCase()}`:""}
   // peso
@@ -513,7 +545,21 @@ let tT;function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;cl
 function show(){
   const nav=document.querySelector(".mf-nav");
   if(!P){$("dash").hidden=true;if(nav)nav.hidden=true;startFlow("reg");return}
-  $("flow").hidden=true;$("dash").hidden=false;if(nav)nav.hidden=false;renderDash();window.scrollTo(0,0);
+  $("flow").hidden=true;$("dash").hidden=false;if(nav)nav.hidden=false;
+  // entrata: logo e schede che salgono, una volta per apertura dell'app
+  let first=false;try{first=!sessionStorage.getItem("mf-intro");sessionStorage.setItem("mf-intro","1")}catch(e){}
+  window.__mfDelay=150;if(first&&window.MFA){window.__mfDelay=MFA.splash()+250;MFA.stagger([...document.querySelectorAll("#dash>*")],Math.max(0,window.__mfDelay-250))}
+  renderDash();window.scrollTo(0,0);
+  setTimeout(()=>{if(!window.MFA)return;MFA.checkMilestones();nudges()},(window.__mfDelay||0)+1200);
+}
+// cose non fatte: avvisi incoraggianti, al massimo uno al giorno per tipo
+function nudges(){const today=Punti.today(),flag=k=>{try{const v=localStorage.getItem("mf-avviso-"+k)===today;if(!v)localStorage.setItem("mf-avviso-"+k,today);return v}catch(e){return true}};
+  const td=(new Date().getDay()+6)%7,yd=(td+6)%7,yk=Punti.keyOf(Date.now()-864e5),h=new Date().getHours();
+  const ye=Punti.dayEntry(yk),yW=Punti.workouts().some(w=>w.k===yk)||(window.Sport&&Sport.onDate(yk).length);
+  if(M.workoutOn(yd)&&!yW&&!ye.riposo&&P.pesi[0].d<Date.now()-2*864e5&&!flag("serie")){const w=M.workoutOn(td);
+    MFA.banner("🔥","var(--gold-soft)","La serie riparte da oggi",`Ieri niente allenamento, capita.${w?` Oggi ${w.name.toLowerCase()}: e sei di nuovo in pista.`:" Oggi è un nuovo giorno."}`);return}
+  const ds=Punti.dayStatus(today);
+  if(h>=20&&ds&&!ds.all&&!flag("diario")){const n=ds.meals.length-ds.marked;MFA.banner("🔔","var(--accent-soft)",`Ti ${n===1?"manca 1 pasto":"mancano "+n+" pasti"} nel diario`,"Bastano 20 secondi: segnali e guadagni punti.",true)}
 }
 M.nav("home");show();
 </script>

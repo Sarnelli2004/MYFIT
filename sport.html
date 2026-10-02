@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f6b4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MyFit">
+<link rel="manifest" href="manifest-myfit.webmanifest">
+<link rel="apple-touch-icon" href="icona-myfit-180.png">
+<link rel="icon" href="icona-myfit-192.png">
+<title>Sport · MyFit</title>
+<script src="myfit.js"></script>
+<script src="dieta.js"></script>
+<script src="sport.js"></script>
+<script src="firebase-config.js"></script>
+<script src="punti.js"></script>
+<script src="anim.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: colonna da telefono; in alto il passaggio Pesi/Sport e il riepilogo della settimana,
+   poi "registra un'attività" (con import dall'orologio), gli sport fissi, lo storico e i consigli per sport */
+:root{
+  --bg:#f1f3ee; --surface:#ffffff; --ink:#18231c; --muted:#5d6a61; --line:#dce2d8;
+  --accent:#d27a2c; --accent-soft:#fbecdc; --green:#2f6b4f; --green-soft:#e0ede5; --bad:#b4442f;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif; --f-body:"Figtree","Segoe UI",system-ui,sans-serif; color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111613; --surface:#1a201c; --ink:#e6ece7; --muted:#9aa79e; --line:#2a332d;
+  --accent:#f0a65a; --accent-soft:#33271a; --green:#7cc4a0; --green-soft:#1f3128; --bad:#ec8a72; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111613; --surface:#1a201c; --ink:#e6ece7; --muted:#9aa79e; --line:#2a332d;
+  --accent:#f0a65a; --accent-soft:#33271a; --green:#7cc4a0; --green-soft:#1f3128; --bad:#ec8a72; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);-webkit-tap-highlight-color:transparent;padding-top:env(safe-area-inset-top,0px)}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 28px;display:flex;flex-direction:column;gap:14px}
+.switch{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+.switch a{text-align:center;padding:9px;border-radius:10px;font-weight:600;text-decoration:none;color:var(--muted)}
+.switch a[aria-current="page"]{background:var(--accent);color:var(--bg)}
+h1.t{font-weight:800;font-size:1.75rem}
+.sub{color:var(--muted);margin:2px 0 0}
+.week{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.week div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.week span{display:block;font-size:.75rem;color:var(--muted)}
+.week b{font-family:var(--f-display);font-weight:800;font-size:1.25rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.card h2{font-weight:600;font-size:1.1rem}
+.lbl{font-size:.8rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
+.sports{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.sports button{border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:8px 2px;cursor:pointer;display:grid;gap:2px;justify-items:center;font-size:.75rem;font-weight:600}
+.sports button span{font-size:1.3rem;line-height:1}
+.sports button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{border:0;background:none;border-radius:9px;padding:9px 2px;font-weight:600;font-size:.84rem;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.inp{position:relative}
+.inp input,.inp select{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:11px 42px 11px 12px;font-size:1rem;font-weight:600}
+.inp.noun input{padding-right:12px}
+.inp small{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;pointer-events:none}
+.notes{display:flex;flex-wrap:wrap;gap:6px}
+.note-c{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 11px;font-size:.8rem;font-weight:600;cursor:pointer}
+.note-c[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.est{background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.est b{font-family:var(--f-display);font-size:1.3rem;font-weight:800;color:var(--accent)}
+.est span{font-size:.82rem;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);font-weight:600;padding:12px 14px;border-radius:12px;cursor:pointer;text-align:center;color:var(--ink);text-decoration:none;display:inline-block}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.small{padding:7px 11px;font-size:.85rem}
+.btn.link{border:0;background:none;color:var(--accent);padding:4px 0}
+.import{border:1.5px dashed var(--line);border-radius:14px;padding:12px;display:grid;gap:8px}
+.import label.btn{cursor:pointer}
+.import input{position:absolute;opacity:0;width:1px;height:1px}
+details{font-size:.86rem;color:var(--muted)}
+details summary{cursor:pointer;font-weight:600;color:var(--ink)}
+details ul{margin:6px 0 0;padding-left:18px;display:grid;gap:4px}
+.rows{list-style:none;margin:0;padding:0;display:grid}
+.rows li{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.rows li:first-child{border-top:0}
+.rows .ic{font-size:1.4rem;width:36px;height:36px;border-radius:10px;background:var(--bg);display:grid;place-items:center}
+.rows .tx{min-width:0}
+.rows .tx b{display:block;font-weight:600}
+.rows .tx span{font-size:.8rem;color:var(--muted)}
+.rows .kc{text-align:right;font-weight:600;font-size:.9rem}
+.rows .kc button{display:block;margin-left:auto}
+.tips{display:grid;gap:10px}
+.tip{background:var(--bg);border-radius:12px;padding:10px 12px}
+.tip b{display:block;margin-bottom:4px}
+.tip ul{margin:0;padding-left:18px;font-size:.88rem;display:grid;gap:3px}
+.empty{color:var(--muted);background:var(--bg);border-radius:12px;padding:12px;margin:0;font-size:.9rem}
+.err{color:var(--bad);font-size:.88rem;margin:0}
+.note{color:var(--muted);font-size:.82rem;margin:0}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(80px + env(safe-area-inset-bottom,0px));max-width:528px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 14px;font-weight:600;z-index:30}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="switch" aria-label="Tipo di allenamento"><a href="allenamento.html">Pesi</a><a href="sport.html" aria-current="page">Sport</a></nav>
+  <header><h1 class="t">I tuoi sport</h1><p class="sub">Registra partite, corse e uscite: le calorie vanno nella dieta e le attività fanno punti.</p></header>
+  <div class="week num" id="week"></div>
+
+  <section class="card" id="logCard">
+    <h2>Registra un'attività</h2>
+    <div class="import">
+      <div><b>Hai un orologio?</b><p class="note">Carica il file GPX o TCX dell'attività: durata, distanza e calorie si compilano da sole.</p></div>
+      <label class="btn small" for="file">Importa file dall'orologio<input type="file" id="file" accept=".gpx,.tcx,application/gpx+xml,application/xml,text/xml"></label>
+      <p class="err" id="fErr" hidden></p>
+      <details><summary>Come esporto il file?</summary><ul>
+        <li><b>Garmin:</b> app Garmin Connect → attività → ⋯ → Esporta (TCX o GPX). Dal computer: connect.garmin.com → attività → ⚙ → Esporta.</li>
+        <li><b>Coros:</b> app Coros → attività → Condividi → file GPX.</li>
+        <li><b>Polar:</b> flow.polar.com → attività → Esporta sessione (TCX o GPX).</li>
+        <li><b>Apple Watch:</b> l'app Fitness non esporta file. Il modo più comodo è collegare l'Apple Watch a Strava (gratis) ed esportare il GPX dall'attività su strava.com; in alternativa un'app come HealthFit.</li>
+      </ul></details>
+    </div>
+    <div><span class="lbl">Sport</span><div class="sports" id="lSport" role="group" aria-label="Sport"></div></div>
+    <div class="f2">
+      <div><label class="lbl" for="lDate">Giorno</label><div class="inp noun"><input type="date" id="lDate"></div></div>
+      <div><label class="lbl" for="lMin">Durata</label><div class="inp"><input id="lMin" inputmode="numeric" placeholder="60"><small>min</small></div></div>
+    </div>
+    <div id="kmWrap"><label class="lbl" for="lKm">Distanza (facoltativa)</label><div class="inp"><input id="lKm" inputmode="decimal" placeholder="5"><small>km</small></div></div>
+    <div><span class="lbl">Intensità</span><div class="seg" id="lInt" role="group" aria-label="Intensità"></div></div>
+    <div><span class="lbl">Note veloci</span><div class="notes" id="lNote"></div></div>
+    <div class="est num" id="est"></div>
+    <p class="err" id="lErr" hidden></p>
+    <button class="btn primary" type="button" id="lSave">Salva attività</button>
+  </section>
+
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>I tuoi sport fissi</h2><button class="btn link" type="button" id="pOpen">Aggiungi</button></div>
+    <p class="note">Gli sport che fai ogni settimana: in quei giorni la dieta aggiunge le calorie e la palestra si organizza intorno.</p>
+    <ul class="rows num" id="piano"></ul>
+    <div id="pForm" hidden style="display:grid;gap:12px">
+      <div><span class="lbl">Sport</span><div class="sports" id="pSport" role="group" aria-label="Sport fisso"></div></div>
+      <div><span class="lbl">Giorno</span><div class="seg" id="pDay" role="group" aria-label="Giorno"></div></div>
+      <div class="f2"><div><label class="lbl" for="pMin">Durata</label><div class="inp"><input id="pMin" inputmode="numeric" placeholder="60"><small>min</small></div></div>
+        <div><span class="lbl">Intensità</span><div class="seg" id="pInt" role="group" aria-label="Intensità"></div></div></div>
+      <p class="err" id="pErr" hidden></p>
+      <div style="display:flex;gap:10px"><button class="btn primary" type="button" id="pSave" style="flex:1">Aggiungi sport fisso</button><button class="btn" type="button" id="pCancel">Annulla</button></div>
+    </div>
+  </section>
+
+  <section class="card"><h2>Ultime attività</h2><ul class="rows num" id="storico"></ul></section>
+  <section class="card" id="tipsCard"><h2>Consigli per i tuoi sport</h2><div class="tips" id="tips"></div></section>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script>
+const $=id=>document.getElementById(id), S=window.Sport, M=window.MyFit;
+const GG=["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
+const fmt=n=>Number(n).toLocaleString("it-IT",{maximumFractionDigits:1});
+const isoToday=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+let L={sport:"calcetto",int:"media",note:[],kcalFile:0,fc:0}, Pf={sport:"calcetto",giorno:1,int:"media"};
+const sportBtns=(el,cur,attr)=>$(el).innerHTML=Object.entries(S.SPORTS).map(([k,s])=>`<button type="button" ${attr}="${k}" aria-pressed="${k===cur}"><span aria-hidden="true">${s.ico}</span>${s.n}</button>`).join("");
+const segBtns=(el,list,cur,attr)=>$(el).innerHTML=list.map(([v,t])=>`<button type="button" ${attr}="${v}" aria-pressed="${String(v)===String(cur)}">${t}</button>`).join("");
+function est(){
+  const min=+$("lMin").value,km=parseFloat(String($("lKm").value).replace(",","."))||0;
+  if(!(min>0)){$("est").innerHTML=`<span>Inserisci la durata per stimare le calorie</span>`;return}
+  const k=S.kcal(L.sport,min,L.int,km),tot=L.kcalFile||k.tot;
+  $("est").innerHTML=`<div><span>Calorie bruciate${L.kcalFile?" (dall'orologio)":" stimate"}</span><br><b>${fmt(tot)} kcal</b></div><span style="text-align:right">+${S.round50(k.extra)} kcal<br>nella dieta di quel giorno</span>`;
+}
+function renderForm(){sportBtns("lSport",L.sport,"data-ls");segBtns("lInt",S.INT,L.int,"data-li");
+  $("lNote").innerHTML=S.NOTE.map(n=>`<button type="button" class="note-c" data-ln="${n}" aria-pressed="${L.note.includes(n)}">${n}</button>`).join("");
+  $("kmWrap").hidden=!S.SPORTS[L.sport].dist;est()}
+function renderPiano(){
+  const P=S.piano().sort((a,b)=>a.giorno-b.giorno);
+  $("piano").innerHTML=P.length?P.map(p=>{const s=S.SPORTS[p.sport],k=S.kcal(p.sport,p.durata,p.intensita);
+    return `<li><span class="ic" aria-hidden="true">${s.ico}</span><div class="tx"><b>${s.n} · ${S.GIORNI[p.giorno]}</b><span>${p.durata} min · intensità ${p.intensita} · +${S.round50(k.extra)} kcal nella dieta</span></div>
+      <div class="kc"><button class="btn link small" type="button" data-pdel="${p.id}">Togli</button></div></li>`}).join("")
+    :`<li style="border:0"><p class="empty" style="grid-column:1/-1">Nessuno sport fisso. Aggiungi per esempio il calcetto del martedì.</p></li>`;
+  sportBtns("pSport",Pf.sport,"data-ps");segBtns("pDay",GG.map((g,i)=>[i,g]),Pf.giorno,"data-pd");segBtns("pInt",S.INT.map(([v,t])=>[v,t.slice(0,5)==="Inten"?"Alta":t]),Pf.int,"data-pi");
+  // consigli: sport fissi + ultimi registrati
+  const used=[...new Set(P.map(p=>p.sport).concat(S.log().slice(0,5).map(a=>a.sport)))];
+  $("tipsCard").hidden=!used.length;
+  $("tips").innerHTML=used.map(k=>`<div class="tip"><b>${S.SPORTS[k].ico} ${S.SPORTS[k].n}</b><ul>${S.TIPS[k].map(t=>`<li>${t}</li>`).join("")}</ul></div>`).join("");
+}
+let delArm=null;
+function renderLog(){
+  const A=S.log().slice(0,12);
+  $("storico").innerHTML=A.length?A.map(a=>{const s=S.SPORTS[a.sport];
+    return `<li><span class="ic" aria-hidden="true">${s.ico}</span><div class="tx"><b>${s.n}</b><span>${new Date(a.date).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"short"})} · ${a.durata} min${a.km?` · ${fmt(a.km)} km`:""}${a.fc?` · FC ${a.fc}`:""}${a.note&&a.note.length?` · ${a.note.join(", ")}`:""}</span></div>
+      <div class="kc">${fmt(a.kcal)} kcal<button class="btn link small" type="button" data-ldel="${a.id}">Elimina</button></div></li>`}).join("")
+    :`<li style="border:0"><p class="empty" style="grid-column:1/-1">Ancora nessuna attività registrata.</p></li>`;
+  const w=S.settimana();
+  $("week").innerHTML=`<div><span>Attività</span><b>${w.n}</b></div><div><span>Minuti</span><b>${w.min}</b></div><div><span>Kcal bruciate</span><b>${fmt(w.kcal)}</b></div>`;
+}
+function err(id,t){$(id).textContent=t;$(id).hidden=!t}
+document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+  if(d.ls){L.sport=d.ls;L.kcalFile=0;renderForm();return}
+  if(d.li){L.int=d.li;L.kcalFile=0;renderForm();return}
+  if(d.ln){L.note=L.note.includes(d.ln)?L.note.filter(x=>x!==d.ln):L.note.concat(d.ln);renderForm();return}
+  if(d.ps){Pf.sport=d.ps;renderPiano();return}
+  if(d.pd!==undefined){Pf.giorno=+d.pd;renderPiano();return}
+  if(d.pi){Pf.int=d.pi;renderPiano();return}
+  if(d.pdel){S.delPiano(d.pdel);renderPiano();toast("Sport fisso tolto.");return}
+  if(d.ldel){if(delArm!==d.ldel){delArm=d.ldel;b.textContent="Conferma";setTimeout(()=>{if(delArm===d.ldel){delArm=null;renderLog()}},3000);return}
+    delArm=null;S.delLog(d.ldel);renderLog();toast("Attività eliminata.");return}
+});
+["lMin","lKm"].forEach(id=>$(id).addEventListener("input",()=>{L.kcalFile=0;est()}));
+$("lSave").addEventListener("click",()=>{
+  const min=Math.round(+$("lMin").value),km=parseFloat(String($("lKm").value).replace(",","."))||0;
+  if(!(min>=5&&min<=600))return err("lErr","Inserisci la durata in minuti, per esempio 60.");
+  const day=$("lDate").value||isoToday();if(day>isoToday())return err("lErr","Puoi registrare solo attività già fatte.");err("lErr","");
+  S.addLog({sport:L.sport,durata:min,intensita:L.int,km:S.SPORTS[L.sport].dist?km:0,note:L.note,fc:L.fc||0,kcal:L.kcalFile||0,date:new Date(day+"T18:00").getTime()});
+  L.note=[];L.kcalFile=0;L.fc=0;$("lMin").value="";$("lKm").value="";$("lDate").value=isoToday();renderForm();renderLog();renderPiano();
+  if(window.Punti)Punti.sync();
+  if(window.MFA){MFA.celebrate({icon:"sport",title:`${S.SPORTS[L.sport].n} registrato!`,text:"Le calorie sono già nella dieta di quel giorno",pts:"+50 punti"});MFA.checkMilestones()}
+  else toast(`${S.SPORTS[L.sport].n} salvato: +50 punti e calorie aggiunte alla dieta.`);
+});
+$("file").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;err("fErr","");
+  try{const t=await f.text(),r=S.parseFile(t,f.name);
+    if(r.sport)L.sport=r.sport;L.int=r.intensita;L.kcalFile=r.kcal||0;L.fc=r.fc||0;
+    $("lMin").value=r.durata;$("lKm").value=r.km?String(r.km).replace(".",","):"";
+    const d=new Date(r.date);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());$("lDate").value=d.toISOString().slice(0,10);
+    renderForm();toast(`File letto: ${r.durata} min${r.km?`, ${fmt(r.km)} km`:""}${r.fc?`, FC media ${r.fc}`:""}. Controlla lo sport e salva.`);
+    $("logCard").scrollIntoView({behavior:"smooth"});
+  }catch(x){err("fErr",x.message==="File non leggibile"?"Non riesco a leggere il file: carica un GPX o un TCX esportato dall'orologio.":x.message+". Prova a esportare in TCX.")}
+  e.target.value="";});
+$("pOpen").addEventListener("click",()=>{$("pForm").hidden=false;$("pOpen").hidden=true});
+$("pCancel").addEventListener("click",()=>{$("pForm").hidden=true;$("pOpen").hidden=false});
+$("pSave").addEventListener("click",()=>{const min=Math.round(+$("pMin").value);
+  if(!(min>=10&&min<=300))return err("pErr","Inserisci la durata in minuti, per esempio 60.");err("pErr","");
+  S.addPiano({sport:Pf.sport,giorno:Pf.giorno,durata:min,intensita:Pf.int});$("pMin").value="";$("pForm").hidden=true;$("pOpen").hidden=false;renderPiano();
+  toast(`${S.SPORTS[Pf.sport].n} il ${S.GIORNI[Pf.giorno].toLowerCase()} aggiunto: dieta e palestra si adattano.`)});
+let tT;function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(tT);tT=setTimeout(()=>el.hidden=true,3800)}
+$("lDate").value=isoToday();$("lDate").max=isoToday();
+M.nav("palestra");renderForm();renderPiano();renderLog();
+</script>
+</body>
+</html>

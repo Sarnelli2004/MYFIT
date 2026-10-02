@@ -14,8 +14,10 @@
 <title>Dieta · MyFit</title>
 <script src="myfit.js"></script>
 <script src="dieta.js"></script>
+<script src="sport.js"></script>
 <script src="firebase-config.js"></script>
 <script src="punti.js"></script>
+<script src="anim.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <style>
@@ -82,6 +84,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:1.75rem;letter-spacing
 
 .foot{display:flex;gap:10px;flex-wrap:wrap}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 .9rem var(--f-body);padding:10px 14px;border-radius:10px;cursor:pointer}
+.sportx{display:block;margin-top:4px;font:600 .85rem var(--f-body);color:var(--warm)}
 .daynote{margin:-6px 0 0;font-family:var(--f-display);font-weight:600;font-size:1.05rem;text-wrap:balance}
 .mnote{margin:0;color:var(--muted);font-size:.88rem;background:var(--warm-soft);padding:8px 12px;border-radius:10px}
 .note{color:var(--muted);font-size:.85rem;margin:0}
@@ -165,8 +168,10 @@ function save(){try{localStorage.setItem(D.SEL_KEY,JSON.stringify(sel))}catch(e)
 const $=id=>document.getElementById(id);
 function render(){
   $("days").innerHTML=DAYS.map((d,i)=>`<button type="button" data-d="${i}" aria-pressed="${i===day}">${d}</button>`).join("");
-  plan=D.day(day,PREFS,sel[day],TARGET);
-  $("daynote").textContent=D.dayTitle(plan);
+  const todayW=(new Date().getDay()+6)%7, ex=window.Sport?Sport.extraFor(day,day===todayW?Sport.keyOf(Date.now()):null):{kcal:0};
+  const T=TARGET+ex.kcal;
+  plan=D.day(day,PREFS,sel[day],T);
+  $("daynote").innerHTML=D.dayTitle(plan)+(ex.kcal?`<span class="sportx">+${ex.kcal.toLocaleString("it-IT")} kcal per ${ex.label}${ex.list[0].fonte==="piano"?" (previsto)":""}</span>`:"");
   $("meals").innerHTML=plan.meals.map(m=>{
     const rows=m.items.map(it=>`<button class="slot" type="button" data-s="${it.key}">
         <span class="cat">${it.cat}</span>
@@ -178,9 +183,9 @@ function render(){
     return `<section class="meal"><div class="meal-head"><h2>${m.name}</h2>${isCol?`<span class="seg" role="group" aria-label="Tipo di colazione"><button type="button" data-style="dolce" aria-pressed="${m.style!=="salata"}">Dolce</button><button type="button" data-style="salata" aria-pressed="${m.style==="salata"}">Salata</button></span>`:""}
       <span class="k num ${Math.abs(m.kcal-m.target)<=15?"ok":""}">${m.kcal} / ${m.target} kcal</span></div>${m.note?`<p class="mnote">${m.note}</p>`:""}
       <div class="list">${rows}</div></section>`}).join("");
-  $("tot").innerHTML=`${fmtK(plan.kcal)}<small>/ ${fmtK(TARGET)} kcal</small>`;
+  $("tot").innerHTML=`${fmtK(plan.kcal)}<small>/ ${fmtK(T)} kcal</small>`;
   $("prot").textContent=plan.prot+" g";
-  $("barfill").style.width=Math.min(100,plan.kcal/TARGET*100)+"%";
+  $("barfill").style.width=Math.min(100,plan.kcal/T*100)+"%";
 }
 let current=null, lastFocus=null;
 function findItem(key){for(const m of plan.meals)for(const it of m.items)if(it.key===key)return [m,it];return [null,null]}

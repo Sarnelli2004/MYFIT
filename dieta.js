@@ -178,5 +178,24 @@ const LABELS={
 function prefChips(prefs){prefs=Object.assign({},DEF_PREFS,prefs||{});const c=[];
   (prefs.esig||[]).forEach(e=>c.push(LABELS.esig[e]));c.push(LABELS.colazione[prefs.colazione],LABELS.pasti[prefs.pasti],LABELS.sera[prefs.sera],LABELS.carbo[prefs.carbo]);
   (prefs.noPiace||[]).forEach(e=>c.push(LABELS.noPiace[e]));c.push(LABELS.polvere[prefs.polvere],LABELS.libero[prefs.libero]);return c.filter(Boolean)}
-window.Dieta={F,L,structure,pick,portion,day,dayTitle,allowed,banned,prefChips,DEF_PREFS,LABELS,SEL_KEY:"myfit-dieta-scelte"};
+// proposte per le calorie mancanti: porzioni normali, poi adattate (×0,5–1,5) e filtrate per le esigenze
+const IDEAS=[
+  {n:"Spuntino proteico",tag:"Ottimo la sera",sera:true,mix:[[["greco","grecosl","yogsoia","skyr"],250],[["noci","mandorle","semi"],30],[["miele","marmellata"],15],[["banana","mela"],120]]},
+  {n:"Panino veloce",tag:"Sazia di più",mix:[[["paneint","pane","panegf"],100],[["tacchinoaff","bresaola","tofu","hummus"],80],[["avocado"],70]]},
+  {n:"Latte e cereali",tag:"Pronto in 1 minuto",mix:[[["latte","lattesl","soia"],300],[["avena","avenagf","corn"],60],[["banana","mela"],120]]},
+  {n:"Gallette e crema",tag:"Da portare via",mix:[[["gallette"],30],[["arachidi","cremamand","avocado","hummus"],30],[["mela","pera","banana"],180]]},
+  {n:"Fiocchi di latte e frutta",tag:"Leggero e proteico",sera:true,mix:[[["fiocchi","grecosl","yogsoia"],200],[["fragole","mirtilli","kiwi","mela"],150],[["noci","semi"],20]]}];
+function suggest(n,prefs){prefs=Object.assign({},DEF_PREFS,prefs||{});const ban=banned(prefs),ok=id=>F[id]&&allowed(id,null,ban);
+  const r5=g=>g<20?Math.max(1,Math.round(g)):Math.round(g/5)*5;
+  const it=(id,g)=>{g=r5(g);const f=F[id];return {id,n:f[0],g,u:f[6]||"g",k:Math.round(g*f[1]/100),p:Math.round(g*f[2]/10)/10}};
+  if(n<250){const fr=["banana","mela","pera"].find(ok),lt=["latte","lattesl","soia"].find(ok),out=[];
+    if(fr)out.push({n:"Un frutto",tag:"Basta poco",items:[it(fr,n/F[fr][1]*100)]});if(lt)out.push({n:"Un bicchiere di latte",tag:"Basta poco",items:[it(lt,n/F[lt][1]*100)]});return out.map(x=>({...x,kcal:x.items.reduce((a,b)=>a+b.k,0),prot:Math.round(x.items.reduce((a,b)=>a+b.p,0))}))}
+  const sera=new Date().getHours()>=19;
+  const list=IDEAS.map(t=>{const pick=t.mix.map(([alts,g])=>{const id=alts.find(ok);return id?[id,g]:null});if(pick.some(x=>!x))return null;
+    const base=pick.reduce((a,[id,g])=>a+g*F[id][1]/100,0),f=Math.max(.5,Math.min(1.5,n/base));
+    return {n:t.n,tag:t.tag,sera:t.sera,items:pick.map(([id,g])=>it(id,g*f))}}).filter(Boolean);
+  if(sera)list.sort((a,b)=>(b.sera?1:0)-(a.sera?1:0));
+  return list.slice(0,3).map(x=>({...x,kcal:x.items.reduce((a,b)=>a+b.k,0),prot:Math.round(x.items.reduce((a,b)=>a+b.p,0))}));
+}
+window.Dieta={suggest,F,L,structure,pick,portion,day,dayTitle,allowed,banned,prefChips,DEF_PREFS,LABELS,SEL_KEY:"myfit-dieta-scelte"};
 })();

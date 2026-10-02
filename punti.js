@@ -27,6 +27,22 @@ const NOTE={
 const ENERGIA=[["stanco","Stanco"],["normale","Normale"],["carico","Carico"]];
 const SONNO=[["poco","Meno di 6 ore"],["giusto","7–8 ore"],["tanto","Più di 9 ore"]];
 
+/* ---------- calorie della giornata ---------- */
+function dayStatus(k){
+  const P=window.MyFit&&MyFit.load();if(!P||!window.Dieta)return null;
+  const wd=weekday(k),c=MyFit.calc(P),ex=window.Sport?Sport.extraFor(wd,k):{kcal:0,label:""};
+  let sel={};try{sel=(JSON.parse(localStorage.getItem(Dieta.SEL_KEY)||"null")||{})[wd]||{}}catch(e){}
+  const target=c.kcal+ex.kcal,plan=Dieta.day(wd,P.dieta,sel,target),e=dayEntry(k),pm=e.pasti||{};
+  let eaten=0,prot=0,marked=0;
+  const meals=plan.meals.map(m=>{const mp=m.items.reduce((a,i)=>a+i.prot,0),s=pm[m.id]||{};let kk=0;
+    if(s.s){marked++;kk=s.s==="saltato"?0:(s.k??m.kcal);eaten+=kk;prot+=m.kcal?mp*kk/m.kcal:0}
+    return {id:m.id,name:m.name,kcal:m.kcal,prot:mp,items:m.items,state:s.s||"",k:kk}});
+  (e.extra||[]).forEach(x=>{eaten+=x.k;prot+=x.p||0});
+  const protT=c.prot;
+  return {target,base:c.kcal,sport:ex,eaten:Math.round(eaten),left:Math.round(target-eaten),prot:Math.round(prot),protT,meals,marked,all:marked>=meals.length,extra:e.extra||[]};
+}
+function dayVerdict(st){if(!st||!st.all)return "";const d=st.left;return Math.abs(d)<=st.target*.1?"centrata":d>0?"manca":"sopra"}
+
 /* ---------- allenamenti salvati ---------- */
 function workouts(){const s=read(WKEY,{});return (s.hist||[]).map(h=>({...h,k:keyOf(h.date)}))}
 
@@ -38,13 +54,15 @@ function mealsPlanned(k,prefs){try{return window.Dieta?Dieta.structure(weekday(k
 function compute(){
   const P=window.MyFit&&MyFit.load(), prefs=(P&&P.dieta)||{}, D=diary(), W=workouts();
   const per={}; const add=(k,pts,why)=>{(per[k]=per[k]||{tot:0,why:[]});per[k].tot+=pts;per[k].why.push([why,pts])};
-  const wDays=new Set(W.map(w=>w.k));
-  wDays.forEach(k=>add(k,50,"Allenamento completato"));
+  const SP=window.Sport?Sport.log():[], spDays=new Set(SP.map(a=>keyOf(a.date))), gymDays=new Set(W.map(w=>w.k));
+  const wDays=new Set([...gymDays,...spDays]);
+  wDays.forEach(k=>add(k,50,gymDays.has(k)?"Allenamento completato":"Sport praticato"));
+  gymDays.forEach(k=>{if(spDays.has(k))add(k,20,"Doppio allenamento")});
   Object.entries(D).forEach(([k,e])=>{
     const ms=Object.values(e.pasti||{});
     const done=ms.filter(m=>m.s==="fatto").length, diff=ms.filter(m=>m.s==="diverso").length;
     const mp=Math.min(50,done*10+diff*5);if(mp)add(k,mp,"Pasti segnati");
-    if(done>0&&done>=mealsPlanned(k,prefs))add(k,20,"Giornata nel piano");
+    if(done+diff>0&&dayVerdict(dayStatus(k))==="centrata")add(k,20,"Giornata centrata");
     if(e.riposo&&!wDays.has(k))add(k,10,"Riposo rispettato");
     if(e.energia||e.sonno)add(k,5,"Check-in del giorno");
     if((e.acqua||0)>=8)add(k,5,"2 litri d'acqua");
@@ -79,7 +97,9 @@ function medals(){const c=compute(),W=workouts(),D=diary(),R=records(),P=window.
   const mealsLogged=Object.values(D).reduce((a,e)=>a+Object.keys(e.pasti||{}).length,0);
   const perfect=Object.values(c.per).some(x=>x.why.some(([w])=>w==="Settimana completa"));
   return [
-    ["Primo passo","Primo allenamento salvato",W.length>=1],
+    ["Primo passo","Primo allenamento salvato",W.length>=1||(window.Sport&&Sport.log().length>=1)],
+    ["Multisport","3 sport diversi registrati",!!(window.Sport&&new Set(Sport.log().map(a=>a.sport)).size>=3)],
+    ["50 km di corsa","Somma delle corse registrate",!!(window.Sport&&Sport.log().filter(a=>a.sport==="corsa").reduce((s,a)=>s+(+a.km||0),0)>=50)],
     ["In movimento","10 allenamenti",W.length>=10],
     ["Instancabile","50 allenamenti",W.length>=50],
     ["Settimana perfetta","Tutti gli allenamenti di una settimana",perfect],
@@ -121,7 +141,7 @@ async function leave(){try{const {db,uid}=await firebase_();await db.collection(
 function autoSync(){const s=settings();if(!s.on||!cfg())return;const last=+(sessionStorage.getItem("mf-sync")||0);
   if(Date.now()-last<120000)return;try{sessionStorage.setItem("mf-sync",Date.now())}catch(e){}setTimeout(sync,1500)}
 
-window.Punti={today,keyOf,dateOf,weekday,weekKey,diary,dayEntry,setDay,NOTE,ENERGIA,SONNO,workouts,compute,level,LEVELS,records,REC_EX,medals,
+window.Punti={dayStatus,dayVerdict,today,keyOf,dateOf,weekday,weekKey,diary,dayEntry,setDay,NOTE,ENERGIA,SONNO,workouts,compute,level,LEVELS,records,REC_EX,medals,
   cfg,settings,saveSettings,sync,board,leave,autoSync};
 window.addEventListener("load",autoSync);
 })();

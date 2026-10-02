@@ -6,11 +6,12 @@
 <meta name="theme-color" content="#3b4a5c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Palestra">
-<link rel="manifest" href="manifest-palestra.webmanifest">
-<link rel="apple-touch-icon" href="icona-palestra-180.png">
-<link rel="icon" href="icona-palestra-192.png">
-<title>Scheda Palestra 3 Giorni</title>
+<meta name="apple-mobile-web-app-title" content="MyFit">
+<link rel="manifest" href="manifest-myfit.webmanifest">
+<link rel="apple-touch-icon" href="icona-myfit-180.png">
+<link rel="icon" href="icona-myfit-192.png">
+<title>Palestra · MyFit</title>
+<script src="myfit.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <style>
@@ -71,6 +72,7 @@ button{font:inherit}
 .last.up{color:var(--ok);background:var(--ok-soft)}
 .sets{border-top:1px solid var(--line);padding:8px 14px 12px;display:grid;gap:6px}
 .set{display:grid;grid-template-columns:62px 1fr 1fr 44px;gap:8px;align-items:center}
+.set.bw{grid-template-columns:62px 1fr 44px}
 .set label{font-size:.8rem;color:var(--muted)}
 .field{position:relative}
 .field input{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 34px 9px 10px;font:600 1rem var(--f-body);font-variant-numeric:tabular-nums}
@@ -81,7 +83,7 @@ button{font:inherit}
 
 .rt{padding:14px;display:grid;gap:8px}
 .rt-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.rt .tip{margin:0}
+.rt .tip{margin:0;grid-column:auto}
 .rt-list{list-style:none;margin:0;padding:0;display:grid}
 .rt-list li{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
 .rt-txt{min-width:0;display:grid}
@@ -89,6 +91,31 @@ button{font:inherit}
 .rt-txt span{font-size:.82rem;color:var(--muted)}
 .dose{font-size:.8rem;font-weight:600;max-width:110px;text-align:center;line-height:1.25;border-radius:99px;padding:6px 10px;border:1px solid var(--accent);color:var(--accent);background:none;cursor:pointer}
 .dose.static{border-color:var(--line);color:var(--muted);cursor:default}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:10px}
+.plan-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.plan-top b{display:block;font-family:var(--f-display);font-weight:600;font-size:1.05rem}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.btn.small{padding:8px 12px;font-size:.88rem}
+.setup{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:16px}
+.setup h2{margin:0;font-family:var(--f-display);font-weight:600;font-size:1.2rem}
+.fld{display:grid;gap:6px}
+.lbl{font-size:.82rem;font-weight:600;color:var(--muted)}
+.lbl small{font-weight:500}
+.hint{margin:0;font-size:.82rem;color:var(--muted)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg label{position:relative;text-align:center;padding:9px 2px;border-radius:9px;font-weight:600;font-size:.86rem;cursor:pointer;color:var(--muted)}
+.seg input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
+.seg label:has(input:checked){background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.fchip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:99px;padding:8px 14px;font-weight:600;font-size:.88rem;cursor:pointer}
+.fchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.pv{background:var(--bg);border-radius:12px;padding:12px;display:grid;gap:6px}
+.pv-row{display:grid;grid-template-columns:auto 1fr;gap:0 10px;font-size:.9rem}
+.pv-row b{grid-row:span 2;min-width:78px}
+.pv-row span:last-child{font-size:.8rem;color:var(--muted)}
+.focus{display:inline-block;vertical-align:middle;font:600 .68rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--accent);background:var(--accent-soft);border-radius:99px;padding:2px 8px;margin-left:4px}
+.tabs b{font-size:.9rem}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;padding:12px 16px;border-radius:12px;cursor:pointer}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);flex:1}
@@ -99,7 +126,7 @@ button{font:inherit}
 .hist li span{color:var(--muted)}
 .note{color:var(--muted);font-size:.85rem;margin:0}
 
-.timer{position:fixed;left:0;right:0;bottom:0;background:var(--steel);color:var(--bg);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:center;gap:14px;z-index:5}
+.timer{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));background:var(--steel);color:var(--bg);padding:10px 16px;display:flex;align-items:center;justify-content:center;gap:14px;z-index:25;border-radius:16px 16px 0 0}
 .timer .t{font-family:var(--f-display);font-weight:800;font-size:1.8rem;min-width:84px;text-align:center}
 .timer .lbl{font-size:.85rem;opacity:.85}
 .timer button{border:1px solid currentColor;background:none;color:inherit;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600}
@@ -113,9 +140,31 @@ button{font:inherit}
 
 <div class="wrap">
   <header>
-    <h1>Scheda Palestra</h1>
-    <p class="sub">3 giorni a settimana, un muscolo grande e uno piccolo per seduta, massimo un'ora.</p>
+    <h1 id="ptitle">La tua scheda</h1>
+    <p class="sub">Scegli giorni, tipo di allenamento e muscoli: la scheda si costruisce da sola.</p>
   </header>
+
+  <section class="plan" id="plan"></section>
+  <form class="setup" id="setup" hidden>
+    <h2>Personalizza la scheda</h2>
+    <div class="fld"><span class="lbl" id="wL">Dove ti alleni</span><div class="seg" role="radiogroup" aria-labelledby="wL">
+      <label><input type="radio" name="luogo" value="palestra">Palestra</label><label><input type="radio" name="luogo" value="casa">Casa, senza attrezzi</label></div>
+      <p class="hint" id="luogoHint"></p></div>
+    <div class="fld"><span class="lbl" id="gL">Giorni a settimana</span><div class="seg" role="radiogroup" aria-labelledby="gL">
+      <label><input type="radio" name="giorni" value="2">2</label><label><input type="radio" name="giorni" value="3">3</label><label><input type="radio" name="giorni" value="4">4</label><label><input type="radio" name="giorni" value="5">5</label></div></div>
+    <div class="fld"><span class="lbl" id="tL">Tipo di allenamento</span><div class="seg" role="radiogroup" aria-labelledby="tL">
+      <label><input type="radio" name="tipo" value="massa">Massa</label><label><input type="radio" name="tipo" value="forza">Forza</label><label><input type="radio" name="tipo" value="definizione">Definizione</label></div>
+      <p class="hint" id="tipoHint"></p></div>
+    <div class="fld"><span class="lbl" id="dL">Quanto vuoi stare in palestra</span><div class="seg" role="radiogroup" aria-labelledby="dL">
+      <label><input type="radio" name="durata" value="45">45 min</label><label><input type="radio" name="durata" value="60">1 ora</label><label><input type="radio" name="durata" value="75">1 ora e ¼</label></div></div>
+    <div class="fld"><span class="lbl" id="lL">Livello</span><div class="seg" role="radiogroup" aria-labelledby="lL">
+      <label><input type="radio" name="livello" value="principiante">Principiante</label><label><input type="radio" name="livello" value="intermedio">Intermedio</label></div></div>
+    <div class="fld"><span class="lbl" id="fL">Muscoli da curare di più <small>(massimo 2)</small></span>
+      <div class="chips" role="group" aria-labelledby="fL" id="focusChips"></div></div>
+    <div class="pv" id="pv"></div>
+    <div class="actions"><button class="btn primary" type="submit">Crea la scheda</button><button class="btn" type="button" id="setupCancel">Annulla</button></div>
+    <p class="note">I pesi che hai già segnato restano: li ritrovi negli esercizi uguali.</p>
+  </form>
 
   <nav class="tabs" id="tabs" aria-label="Giorno di allenamento"></nav>
 
@@ -139,42 +188,167 @@ button{font:inherit}
 
 <script>
 const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q+" esecuzione corretta");
-// [id, nome, serie, ripetizioni "min-max", recupero s, consiglio, ricerca video]
-const DAYS=[
- {name:"Petto e tricipiti",short:"Giorno 1",when:"Lunedì",ex:[
-  ["panca","Panca piana con bilanciere",4,"8-10",120,"Scapole strette, piedi a terra, bilanciere a metà petto.","panca piana bilanciere"],
-  ["inclinata","Panca inclinata con manubri",3,"10-12",90,"Panca a 30°, scendi lento fino a sentire l'allungamento.","panca inclinata manubri"],
-  ["croci","Croci ai cavi",3,"12-15",60,"Gomiti leggermente piegati, chiudi le mani davanti al petto.","croci ai cavi petto"],
-  ["pushdown","Push down ai cavi",3,"10-12",60,"Gomiti incollati ai fianchi, estendi del tutto.","push down tricipiti cavo"],
-  ["french","French press con manubri",3,"10-12",60,"Gomiti fermi verso il soffitto, scendi dietro la testa.","french press manubri"],
-  ["crunch","Crunch a terra",3,"15-20",45,"Stacca solo le spalle, senza tirare il collo.","crunch addominali"]]},
- {name:"Schiena e bicipiti",short:"Giorno 2",when:"Mercoledì",ex:[
-  ["lat","Lat machine presa larga",4,"8-10",120,"Petto in fuori, tira la sbarra verso lo sterno.","lat machine avanti"],
-  ["rematore","Rematore con manubrio",3,"10-12",90,"Schiena piatta, porta il gomito verso il fianco.","rematore manubrio"],
-  ["pulley","Pulley basso",3,"10-12",60,"Busto fermo, tira verso l'ombelico e stringi le scapole.","pulley basso"],
-  ["hyper","Hyperextension",3,"12-15",60,"Sali fino a schiena in linea, senza inarcare.","hyperextension panca romana"],
-  ["curlez","Curl con bilanciere EZ",3,"8-10",60,"Gomiti fermi, niente slancio con la schiena.","curl bilanciere ez"],
-  ["martello","Curl a martello",3,"10-12",60,"Palmi uno di fronte all'altro, sali alternato.","curl a martello manubri"]]},
- {name:"Gambe e spalle",short:"Giorno 3",when:"Venerdì",ex:[
-  ["squat","Squat con bilanciere",4,"8-10",120,"Petto alto, scendi almeno a cosce parallele.","squat bilanciere"],
-  ["legpress","Leg press",3,"10-12",90,"Non staccare il bacino, non bloccare le ginocchia.","leg press 45"],
-  ["legcurl","Leg curl",3,"10-12",60,"Movimento controllato anche in discesa.","leg curl macchina"],
-  ["shoulder","Shoulder press con manubri",3,"8-10",90,"Seduto con schienale, spingi in alto senza inarcare.","shoulder press manubri seduto"],
-  ["laterali","Alzate laterali",3,"12-15",60,"Carico leggero, sali fino all'altezza delle spalle.","alzate laterali manubri"],
-  ["calf","Calf raise in piedi",3,"12-15",45,"Sali sulle punte e fermati un secondo in alto.","calf raise in piedi"]]}
-];
+// ===== Generatore di schede =====
+// Libreria: id → [nome, muscolo, tipo (big = multiarticolare, acc, iso), consiglio, ricerca video, animazione]
+const LIB={
+ panca:["Panca piana con bilanciere","petto","big","Scapole strette, piedi a terra, bilanciere a metà petto.","panca piana bilanciere"],
+ inclinata:["Panca inclinata con manubri","petto","acc","Panca a 30°, scendi lento fino a sentire l'allungamento.","panca inclinata manubri"],
+ pancaman:["Panca piana con manubri","petto","acc","Manubri all'altezza del petto, spingi chiudendo leggermente in alto.","panca piana manubri","panca"],
+ croci:["Croci ai cavi","petto","iso","Gomiti leggermente piegati, chiudi le mani davanti al petto.","croci ai cavi petto"],
+ lat:["Lat machine presa larga","schiena","big","Petto in fuori, tira la sbarra verso lo sterno.","lat machine avanti"],
+ trazioni:["Trazioni alla sbarra (anche assistite)","schiena","big","Parti da braccia tese, porta il mento sopra la sbarra senza slanci.","trazioni sbarra principianti","lat"],
+ rematore:["Rematore con manubrio","schiena","acc","Schiena piatta, porta il gomito verso il fianco.","rematore manubrio"],
+ pulley:["Pulley basso","schiena","acc","Busto fermo, tira verso l'ombelico e stringi le scapole.","pulley basso"],
+ hyper:["Hyperextension","lombari","iso","Sali fino a schiena in linea, senza inarcare.","hyperextension panca romana"],
+ shoulder:["Shoulder press con manubri","spalle","big","Seduto con schienale, spingi in alto senza inarcare.","shoulder press manubri seduto"],
+ arnold:["Arnold press","spalle","acc","Parti con i palmi verso di te e ruotali mentre spingi in alto.","arnold press","shoulder"],
+ laterali:["Alzate laterali","spalle","iso","Carico leggero, sali fino all'altezza delle spalle.","alzate laterali manubri"],
+ curlez:["Curl con bilanciere EZ","bicipiti","iso","Gomiti fermi, niente slancio con la schiena.","curl bilanciere ez"],
+ martello:["Curl a martello","bicipiti","iso","Palmi uno di fronte all'altro, sali alternato.","curl a martello manubri"],
+ curlman:["Curl alternato con manubri","bicipiti","iso","Ruota il palmo verso l'alto mentre sali.","curl alternato manubri","martello"],
+ pushdown:["Push down ai cavi","tricipiti","iso","Gomiti incollati ai fianchi, estendi del tutto.","push down tricipiti cavo"],
+ french:["French press con manubri","tricipiti","iso","Gomiti fermi verso il soffitto, scendi dietro la testa.","french press manubri"],
+ squat:["Squat con bilanciere","quadricipiti","big","Petto alto, scendi almeno a cosce parallele.","squat bilanciere"],
+ legpress:["Leg press","quadricipiti","acc","Non staccare il bacino, non bloccare le ginocchia.","leg press 45"],
+ legext:["Leg extension","quadricipiti","iso","Estendi del tutto e scendi lento, senza far sbattere il peso.","leg extension macchina"],
+ stacco:["Stacco rumeno","femorali","big","Spingi i fianchi indietro, schiena dritta, bilanciere vicino alle gambe.","stacco rumeno bilanciere"],
+ legcurl:["Leg curl","femorali","iso","Movimento controllato anche in discesa.","leg curl macchina"],
+ hipthrust:["Hip thrust","glutei","big","Spalle sulla panca, spingi coi talloni e stringi i glutei in alto.","hip thrust bilanciere"],
+ calf:["Calf raise in piedi","polpacci","iso","Sali sulle punte e fermati un secondo in alto.","calf raise in piedi"],
+ crunch:["Crunch a terra","addome","core","Stacca solo le spalle, senza tirare il collo.","crunch addominali"],
+ legraise:["Leg raise a terra","addome","core","Schiena incollata a terra, sali e scendi lento.","leg raise addominali"]
+};
+// Esercizi a casa, senza attrezzi: [nome, muscolo, tipo, consiglio, ricerca video, animazione, "s" se a tempo]
+const LIBH={
+ c_push:["Piegamenti sulle braccia","petto","big","Corpo dritto dalla testa ai talloni, petto fino a sfiorare il pavimento. Troppo difficili? Appoggia le ginocchia.","piegamenti braccia","pushup"],
+ c_pushinc:["Piegamenti con mani sulla sedia","petto","acc","Mani sul bordo di una sedia ferma o del divano: più facili, ottimi per finire.","piegamenti inclinati","pushup"],
+ c_pushdec:["Piegamenti con piedi sulla sedia","petto","acc","Piedi rialzati: lavora di più la parte alta del petto.","piegamenti declinati","pushup"],
+ c_pushlarg:["Piegamenti a mani larghe","petto","iso","Mani più larghe delle spalle, scendi lento.","piegamenti presa larga","pushup"],
+ c_row:["Rematore inverso sotto il tavolo","schiena","big","Sdraiati sotto un tavolo robusto, afferra il bordo e tira il petto verso il tavolo tenendo il corpo dritto.","rematore inverso tavolo","invrow"],
+ c_towel:["Rematore con asciugamano alla porta","schiena","acc","Asciugamano attorno alle maniglie di una porta chiusa, piedi vicino alla porta: tira inclinandoti indietro.","rematore asciugamano porta","invrow"],
+ c_ytw:["Alzate Y-T-W a terra","schiena","iso","A pancia in giù, alza le braccia formando le lettere Y, T e W. Movimento lento.","ytw a terra esercizio","superman"],
+ c_superman:["Superman","lombari","iso","A pancia in giù, alza insieme braccia e gambe e tieni 2 secondi.","superman esercizio","superman"],
+ c_pike:["Pike push-up","spalle","big","Fianchi in alto a V rovesciata, porta la testa verso il pavimento tra le mani.","pike push up","pike"],
+ c_pikeel:["Pike push-up con piedi sulla sedia","spalle","acc","Versione più difficile: piedi rialzati, più peso sulle spalle.","pike push up piedi rialzati","pike"],
+ c_tocco:["Plank con tocco delle spalle","spalle","iso","In posizione da piegamento, tocca la spalla opposta senza far ruotare i fianchi.","plank tocco spalle","pushup"],
+ c_rowclose:["Rematore inverso a presa stretta","bicipiti","acc","Mani vicine con i palmi verso di te: lavora di più il bicipite.","rematore inverso presa inversa","invrow"],
+ c_zaino:["Curl con lo zaino","bicipiti","iso","Riempi uno zaino con libri o bottiglie, tienilo per le spallacce e piega i gomiti.","curl con zaino","zaino"],
+ c_dip:["Dip sulla sedia","tricipiti","acc","Mani sul bordo di una sedia ferma, scendi piegando i gomiti all'indietro.","dip tricipiti sedia","dip"],
+ c_pushclose:["Piegamenti a mani strette","tricipiti","iso","Mani sotto il petto, gomiti stretti al corpo.","piegamenti diamante","pushup"],
+ c_squat:["Squat a corpo libero","quadricipiti","big","Braccia avanti, talloni a terra, scendi più in basso che puoi con la schiena dritta.","squat corpo libero","squatbw"],
+ c_lunge:["Affondi alternati","quadricipiti","acc","Passo lungo, il ginocchio dietro sfiora il pavimento, busto dritto.","affondi alternati","affondo"],
+ c_bulg:["Split squat bulgaro","quadricipiti","acc","Piede dietro appoggiato sulla sedia, scendi col ginocchio dietro verso terra. Ripetizioni per gamba.","split squat bulgaro","affondo"],
+ c_wall:["Sedia al muro","quadricipiti","iso","Schiena al muro, cosce parallele al pavimento: resisti.","wall sit esercizio","wallsit","s"],
+ c_rdl:["Stacco rumeno a una gamba","femorali","acc","In equilibrio su una gamba, piegati in avanti a schiena dritta e risali stringendo il gluteo.","stacco rumeno una gamba corpo libero","stacbw"],
+ c_hamb:["Ponte con talloni sulla sedia","femorali","iso","Talloni sulla sedia, spingi i fianchi in alto: lavora la parte dietro della coscia.","ponte femorali sedia","ponte"],
+ c_bridge:["Ponte glutei","glutei","big","Spingi con i talloni, stringi i glutei in alto e tieni 1 secondo.","ponte glutei","ponte"],
+ c_bridge1:["Ponte a una gamba","glutei","acc","Una gamba tesa in aria, spingi con il tallone dell'altra. Ripetizioni per gamba.","ponte glutei una gamba","ponte"],
+ c_calf:["Calf raise sul gradino","polpacci","iso","Punte sul gradino, scendi col tallone e risali più in alto che puoi.","calf raise gradino","calfbw"],
+ c_crunch:["Crunch a terra","addome","core","Stacca solo le spalle, senza tirare il collo.","crunch addominali","crunch"],
+ c_legraise:["Leg raise a terra","addome","core","Schiena incollata a terra, sali e scendi lento.","leg raise addominali","legraise"],
+ c_plank:["Plank","addome","core","Gomiti sotto le spalle, corpo dritto, addome e glutei contratti.","plank addominali","plank","s"],
+ c_climber:["Mountain climber","addome","core","Da posizione di piegamento, porta le ginocchia al petto alternandole veloce.","mountain climber","climber"]
+};
+const BYH={};Object.entries(LIBH).forEach(([id,e])=>(BYH[e[1]]=BYH[e[1]]||[]).push(id));
+const SCHEME_CASA={
+ massa:{big:[4,"8-15",90],acc:[3,"10-15",75],iso:[3,"12-20",60],core:[3,"15-20",45],tempo:"30-45"},
+ forza:{big:[5,"5-8",120],acc:[4,"6-10",90],iso:[3,"10-15",60],core:[3,"10-15",45],tempo:"20-40"},
+ definizione:{big:[3,"12-20",60],acc:[3,"15-20",45],iso:[3,"15-25",30],core:[3,"20-30",30],tempo:"30-60"}
+};
+const BY={};Object.entries(LIB).forEach(([id,e])=>(BY[e[1]]=BY[e[1]]||[]).push(id));
+// gruppi selezionabili come "da curare di più" → muscoli
+const FOCUS={petto:["petto"],schiena:["schiena"],spalle:["spalle"],braccia:["bicipiti","tricipiti"],gambe:["quadricipiti","femorali"],glutei:["glutei"],addome:["addome"]};
+const FOCUS_LBL={petto:"Petto",schiena:"Schiena",spalle:"Spalle",braccia:"Braccia",gambe:"Gambe",glutei:"Glutei",addome:"Addome"};
+// modelli: [nome, etichetta breve, tipo per riscaldamento/stretching (0 spinta, 1 tirata, 2 gambe), muscoli in ordine, muscoli extra se c'è tempo]
+const SPLITS={
+ 2:[["Total body A","Total A",2,["quadricipiti","petto","schiena","spalle","bicipiti","addome"],["femorali","tricipiti"]],
+    ["Total body B","Total B",2,["femorali","schiena","petto","quadricipiti","spalle","tricipiti","addome"],["glutei","bicipiti"]]],
+ 3:[["Petto e tricipiti","Petto",0,["petto","petto","petto","tricipiti","tricipiti","addome"],["petto"]],
+    ["Schiena e bicipiti","Schiena",1,["schiena","schiena","schiena","lombari","bicipiti","bicipiti"],["schiena","addome"]],
+    ["Gambe e spalle","Gambe",2,["quadricipiti","quadricipiti","femorali","spalle","spalle","polpacci"],["glutei","addome"]]],
+ 4:[["Petto e tricipiti","Petto",0,["petto","petto","petto","tricipiti","tricipiti"],["addome","petto"]],
+    ["Gambe e glutei","Gambe",2,["quadricipiti","femorali","quadricipiti","glutei","femorali","polpacci"],["addome"]],
+    ["Schiena e bicipiti","Schiena",1,["schiena","schiena","schiena","lombari","bicipiti","bicipiti"],["schiena"]],
+    ["Spalle e addome","Spalle",0,["spalle","spalle","spalle","addome","addome"],["tricipiti","bicipiti"]]],
+ 5:[["Petto","Petto",0,["petto","petto","petto","petto","addome"],["tricipiti"]],
+    ["Schiena","Schiena",1,["schiena","schiena","schiena","schiena","lombari"],["bicipiti"]],
+    ["Gambe","Gambe",2,["quadricipiti","femorali","quadricipiti","glutei","femorali","polpacci"],["addome"]],
+    ["Spalle e addome","Spalle",0,["spalle","spalle","spalle","addome","addome"],["lombari"]],
+    ["Braccia","Braccia",0,["bicipiti","tricipiti","bicipiti","tricipiti","bicipiti","tricipiti"],["addome"]]]
+};
+const WHEN={2:["Lunedì","Giovedì"],3:["Lunedì","Mercoledì","Venerdì"],4:["Lunedì","Martedì","Giovedì","Venerdì"],5:["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì"]};
+// serie, ripetizioni, recupero per tipo di allenamento e di esercizio
+const SCHEME={
+ massa:{big:[4,"8-10",120],acc:[3,"10-12",75],iso:[3,"12-15",60],core:[3,"15-20",45]},
+ forza:{big:[5,"4-6",180],acc:[3,"6-8",120],iso:[3,"10-12",60],core:[3,"15-20",45]},
+ definizione:{big:[3,"10-12",75],acc:[3,"12-15",60],iso:[3,"15-20",45],core:[3,"20-25",30]}
+};
+const TIPO_LBL={massa:"Massa",forza:"Forza",definizione:"Definizione"};
+const exMin=e=>e[2]*(45+e[4])/60+1.5;
+function buildPlan(o){
+  const casa=o.luogo==="casa", LB=casa?LIBH:LIB, BYL=casa?BYH:BY;
+  const tpl=SPLITS[o.giorni]||SPLITS[3], used={}, foc=(o.focus||[]).flatMap(f=>FOCUS[f]||[]);
+  const isBig=id=>LB[id][2]==="big";
+  const pick=(mus,day)=>{const c=(BYL[mus]||[]).filter(id=>!day.includes(id));if(!c.length)return null;
+    const low=id=>["quadricipiti","femorali","glutei"].includes(LB[id][1]);
+    const pen=id=>(isBig(id)&&day.some(x=>isBig(x)&&low(x)===low(id)))?1:0;
+    c.sort((a,b)=>(pen(a)-pen(b))||((used[a]||0)-(used[b]||0))||(BYL[mus].indexOf(a)-BYL[mus].indexOf(b)));return c[0]};
+  const days=tpl.map(([name,tab,kind,base,extra],di)=>{
+    let list=[...base];
+    // muscoli in evidenza: una serie di esercizi in più dove sono già allenati
+    foc.forEach(m=>{const i=list.lastIndexOf(m);if(i>=0)list.splice(i+1,0,m)});
+    return {name,tab,kind,when:WHEN[o.giorni][di],list,extra:[...extra]};
+  });
+  // muscolo in evidenza che nessun giorno allena: lo aggiungo al giorno più vicino
+  foc.forEach(m=>{if(!days.some(d=>d.list.includes(m))){const d=days.find(d=>d.kind===({glutei:2,quadricipiti:2,femorali:2,addome:2}[m]??0))||days[0];d.list.splice(Math.min(2,d.list.length),0,m)}});
+  const sc=(casa?SCHEME_CASA:SCHEME)[o.tipo]||SCHEME.massa, lim=o.durata-11;
+  return days.map(d=>{
+    const ids=[],ex=[];
+    const add=(m,focus)=>{const id=pick(m,ids);if(!id)return false;const L=LB[id];
+      const typ=(L[2]==="big"&&ex.filter(e=>e[9]==="big").length>=2)?"acc":L[2];
+      let [s,r,rest]=sc[typ];if(o.livello==="intermedio"&&L[2]!=="core")s+=1;
+      if(L[6]==="s")r=sc.tempo;
+      const e=[id,L[0],s,r,rest,L[3],L[4],L[5]||id,focus,typ,casa,L[6]||""];ids.push(id);ex.push(e);return true};
+    d.list.forEach(m=>add(m,foc.includes(m)));
+    // troppo lungo: tolgo dal fondo gli esercizi meno importanti
+    const tot=()=>ex.reduce((a,e)=>a+exMin(e),0);
+    let guard=0;
+    while(tot()>lim&&guard++<40){
+      let i=-1;if(ex.length>4)for(let k=ex.length-1;k>=0;k--){if(!ex[k][8]&&ex[k][9]!=="big"){i=k;break}}
+      if(i>=0){ex.splice(i,1);ids.splice(i,1);continue}
+      const j=ex.reduce((b,e,k)=>e[2]>ex[b][2]?k:b,0);
+      if(ex[j][2]>3){ex[j][2]--;continue}
+      if(ex.length>3){ex.splice(ex.length-1,1);ids.splice(ids.length-1,1);continue}
+      break}
+    // tempo avanzato: aggiungo esercizi extra
+    for(const m of d.extra){const id=(BYL[m]||[]).find(x=>!ids.includes(x)&&!isBig(x));if(!id)continue;const L=LB[id],[s,r,rest]=sc[L[2]];
+      const s2=s+(o.livello==="intermedio"&&L[2]!=="core"?1:0);if(tot()+s2*(45+rest)/60+1.5<=lim)add(m,false)}
+    ex.forEach(e=>used[e[0]]=(used[e[0]]||0)+1);
+    // i multiarticolari prima, poi gli altri; l'addome in fondo
+    const rank=e=>({big:0,acc:1,iso:2,core:3})[e[9]]-(e[8]?.5:0);
+    const order=ex.map((e,i)=>[e,i]).sort((a,b)=>rank(a[0])-rank(b[0])||a[1]-b[1]).map(x=>x[0]);
+    return {name:d.name,short:d.tab,tab:d.tab,kind:d.kind,when:d.when,ex:order};
+  });
+}
+const SKEY="myfit-scheda-impostazioni";
+function defaultSettings(){const p=window.MyFit&&MyFit.load();
+  return {luogo:"palestra",giorni:3,tipo:p&&p.obiettivo==="dimagrimento"?"definizione":"massa",livello:"principiante",durata:60,focus:[]}}
+let SET=(()=>{try{return Object.assign(defaultSettings(),JSON.parse(localStorage.getItem(SKEY)||"null")||{})}catch(e){return defaultSettings()}})();
+let DAYS=buildPlan(SET);
+
 const WARMUP={"0": [["Rotazioni delle braccia", "20 avanti + 20 indietro", 0, "Cerchi ampi, parti piccolo e allarga."], ["Aperture del petto", "15 ripetizioni", 0, "Braccia tese: incrocia davanti, poi apri il più possibile."], ["Rotazioni del busto", "10 per lato", 0, "Piedi fermi, gira spalle e testa insieme."], ["Piegamenti sulle ginocchia", "10 ripetizioni", 0, "Lenti, solo per scaldare petto e tricipiti."], ["Serie leggere di panca", "2 × 10 col solo bilanciere", 0, "Poi parti con la prima serie vera."]], "1": [["Rotazioni delle braccia", "20 avanti + 20 indietro", 0, "Cerchi ampi, spalle rilassate."], ["Gatto e mucca", "10 ripetizioni", 0, "A quattro zampe: inarca e arrotonda la schiena lentamente."], ["Rotazioni del busto", "10 per lato", 0, "Piedi fermi, gira spalle e testa insieme."], ["Good morning a corpo libero", "10 ripetizioni", 0, "Mani dietro la testa, spingi i fianchi indietro a schiena dritta."], ["Serie leggera di lat machine", "1 × 12 con carico leggero", 0, "Concentrati sul tirare con le scapole."]], "2": [["Cerchi con le anche", "10 per lato", 0, "Mani sui fianchi, cerchi ampi e lenti."], ["Slanci delle gambe", "10 per gamba", 0, "Appoggiati con una mano, slancia avanti e indietro."], ["Squat a corpo libero", "15 ripetizioni", 0, "Scendi in profondità, talloni a terra."], ["Affondi camminati", "8 per gamba", 0, "Passo lungo, busto dritto."], ["Rotazioni delle spalle", "20 ripetizioni", 0, "Prepara le spalle per la seconda parte."]]};
 const STRETCH={"0": [["Petto allo stipite", "30 s per lato", 30, "Avambraccio sullo stipite o sul palo, ruota il busto dalla parte opposta."], ["Tricipite dietro la testa", "30 s per lato", 30, "Gomito verso il soffitto, l'altra mano lo spinge piano."], ["Spalla incrociata", "30 s per lato", 30, "Braccio teso davanti al petto, tiralo con l'altro."], ["Cobra", "30 s", 30, "Da prono, spingi con le mani e allunga l'addome."]], "1": [["Dorsali al palo", "30 s per lato", 30, "Afferra un palo con una mano e spingi i fianchi indietro."], ["Posizione del bambino", "40 s", 40, "Seduto sui talloni, braccia avanti, respira lento."], ["Bicipite al muro", "30 s per lato", 30, "Mano sul muro dietro di te, gira il busto dall'altra parte."], ["Torsione da sdraiato", "30 s per lato", 30, "Ginocchio piegato portato dalla parte opposta, spalle a terra."]], "2": [["Quadricipite in piedi", "30 s per lato", 30, "Tallone verso il gluteo, ginocchia vicine."], ["Femorali da seduto", "40 s", 40, "Gambe tese, scendi in avanti a schiena dritta."], ["Gluteo a figura 4", "30 s per lato", 30, "Da sdraiato, caviglia sul ginocchio opposto, tira la gamba verso di te."], ["Polpacci al muro", "30 s per lato", 30, "Gamba dietro tesa, tallone a terra, spingi contro il muro."], ["Spalla incrociata", "30 s per lato", 30, "Braccio teso davanti al petto, tiralo con l'altro."]]};
 const WARM=6, STR=5; // minuti di riscaldamento e stretching
 const minutes=d=>Math.round(WARM+STR+d.ex.reduce((a,e)=>a+e[2]*(45+e[4])/60+1.5,0));
 const KEY="scheda3g";
+const WU=d=>WARMUP[d.kind], STX=d=>STRETCH[d.kind];
 
 let st={day:0,cur:{},hist:[]};
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)st=Object.assign(st,s)}catch(e){}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 const $=id=>document.getElementById(id);
 const fmtDate=t=>new Date(t).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"short"});
-const topR=r=>+r.split("-")[1], lowR=r=>+r.split("-")[0];
+const topR=r=>parseInt(r.split("-")[1]), lowR=r=>parseInt(r.split("-")[0]);
 
 function lastFor(exId){
   for(let i=st.hist.length-1;i>=0;i--){const s=st.hist[i].sets[exId];if(s&&s.length)return s}
@@ -184,33 +358,38 @@ function lastText(e){
   const s=lastFor(e[0]); if(!s)return null;
   const kg=Math.max(...s.map(x=>+x.kg||0)), reps=s.map(x=>+x.reps||0);
   const up=s.length>=e[2]&&reps.every(r=>r>=topR(e[3]));
+  if(e[10]){const u=e[11]==="s"?"s":"rip";return {txt:up?`Ultima volta tutte le serie a ${topR(e[3])} ${u}: passa a una variante più difficile`:`Ultima volta: ${reps.join("/")} ${u}`,up,kg:""}}
   return {txt:up?`Ultima volta ${kg} kg: tutte le serie a ${topR(e[3])}, aumenta il peso`:`Ultima volta: ${kg} kg × ${reps.join("/")}`,up,kg};
 }
-function cur(){return st.cur[st.day]||(st.cur[st.day]={})}
+function cur(){if(st.day>=DAYS.length)st.day=0;return st.cur[st.day]||(st.cur[st.day]={})}
 
 function render(){
-  $("tabs").innerHTML=DAYS.map((d,i)=>`<button type="button" data-day="${i}" aria-pressed="${i===st.day}"><b>${d.short}</b><span>${d.name}</span></button>`).join("");
+  if(st.day>=DAYS.length)st.day=0;
+  $("tabs").style.gridTemplateColumns=`repeat(${DAYS.length},1fr)`;
+  $("tabs").innerHTML=DAYS.map((d,i)=>`<button type="button" data-day="${i}" aria-pressed="${i===st.day}"><b>${d.when.slice(0,3)}</b><span>${d.tab}</span></button>`).join("");
+  renderPlan();
   const d=DAYS[st.day], c=cur();
   const totalSets=d.ex.reduce((a,e)=>a+e[2],0), doneSets=d.ex.reduce((a,e)=>a+(c[e[0]]||[]).filter(x=>x&&x.done).length,0);
   $("hero").innerHTML=`<h2>${d.name}</h2>
     <div class="facts"><span class="chip acc">≈ ${minutes(d)} min</span><span class="chip">${d.ex.length} esercizi · ${totalSets} serie</span><span class="chip">Consigliato: ${d.when}</span></div>
     <div class="prog" aria-label="Serie completate"><span style="width:${totalSets?doneSets/totalSets*100:0}%"></span></div>
     <p class="warm num">${doneSets} di ${totalSets} serie fatte. Si parte dal riscaldamento (${WARM} min) e si chiude con lo stretching (${STR} min).</p>`;
-  $("list").innerHTML=routine("_w","Riscaldamento",WARM,WARMUP[st.day],"A corpo libero, senza pause: prepara i muscoli del giorno.")+d.ex.map((e,k)=>{
+  $("list").innerHTML=routine("_w","Riscaldamento",WARM,WU(d),"A corpo libero, senza pause: prepara i muscoli del giorno.")+d.ex.map((e,k)=>{
     const rows=c[e[0]]||[], last=lastText(e), allDone=rows.filter(x=>x&&x.done).length>=e[2];
     const sets=Array.from({length:e[2]},(_,s)=>{const r=rows[s]||{};
       const phKg=last?last.kg:"", id=`${e[0]}-${s}`;
-      return `<div class="set"><label for="kg-${id}">Serie ${s+1}</label>
-        <div class="field"><input id="kg-${id}" inputmode="decimal" data-ex="${e[0]}" data-s="${s}" data-f="kg" value="${r.kg??""}" placeholder="${phKg}"><small>kg</small></div>
-        <div class="field"><input id="rp-${id}" inputmode="numeric" data-ex="${e[0]}" data-s="${s}" data-f="reps" value="${r.reps??""}" placeholder="${e[3]}" aria-label="Ripetizioni serie ${s+1}"><small>rip</small></div>
+      const u=e[11]==="s"?"s":"rip";
+      return `<div class="set${e[10]?" bw":""}"><label for="${e[10]?"rp":"kg"}-${id}">Serie ${s+1}</label>
+        ${e[10]?"":`<div class="field"><input id="kg-${id}" inputmode="decimal" data-ex="${e[0]}" data-s="${s}" data-f="kg" value="${r.kg??""}" placeholder="${phKg}"><small>kg</small></div>`}
+        <div class="field"><input id="rp-${id}" inputmode="numeric" data-ex="${e[0]}" data-s="${s}" data-f="reps" value="${r.reps??""}" placeholder="${e[3]}" aria-label="Ripetizioni serie ${s+1}"><small>${u}</small></div>
         <button class="check" type="button" data-done="${e[0]}" data-s="${s}" data-rest="${e[4]}" aria-pressed="${!!r.done}" aria-label="Serie ${s+1} fatta"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>`}).join("");
     return `<article class="ex ${allDone?"done":""}">
-      <div class="fig"><canvas data-anim="${e[0]}" role="img" aria-label="Animazione del movimento: ${e[1]}"></canvas><span class="lab">Il movimento</span></div>
-      <div class="ex-head"><span class="idx">${k+1}</span><h3>${e[1]}</h3>
-        <div class="meta"><span><b>${e[2]} × ${e[3]}</b> rip</span><span>·</span><span>recupero <b>${e[4]>=60?(e[4]/60).toString().replace(".",",")+" min":e[4]+" s"}</b></span></div>
+      <div class="fig"><canvas data-anim="${e[7]}" role="img" aria-label="Animazione del movimento: ${e[1]}"></canvas><span class="lab">Il movimento</span></div>
+      <div class="ex-head"><span class="idx">${k+1}</span><h3>${e[1]}${e[8]?' <span class="focus">In evidenza</span>':""}</h3>
+        <div class="meta"><span><b>${e[2]} × ${e[3]}</b> ${e[11]==="s"?"secondi":"rip"}</span><span>·</span><span>recupero <b>${e[4]>=60?(e[4]/60).toString().replace(".",",")+" min":e[4]+" s"}</b></span></div>
         <p class="tip">${e[5]}</p>
         <div class="links"><a class="video" href="${yt(e[6])}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Video su YouTube</a>${last?`<span class="last ${last.up?"up":""}">${last.txt}</span>`:""}</div>
-      </div><div class="sets">${sets}</div></article>`}).join("")+routine("_s","Stretching finale",STR,STRETCH[st.day],"Tieni ogni posizione respirando lento, senza molleggiare. Tocca il tempo per far partire il timer.");
+      </div><div class="sets">${sets}</div></article>`}).join("")+routine("_s","Stretching finale",STR,STX(d),"Tieni ogni posizione respirando lento, senza molleggiare. Tocca il tempo per far partire il timer.");
   renderHist();
 }
 function routine(key,title,min,items,intro){
@@ -224,7 +403,7 @@ function routine(key,title,min,items,intro){
 function renderHist(){
   const h=st.hist.slice(-6).reverse();
   $("hist").innerHTML=`<h2>Storico</h2>`+(h.length?`<ul>${h.map(x=>{const n=Object.values(x.sets).reduce((a,s)=>a+s.length,0);
-    return `<li><b>${DAYS[x.day].name}</b><span class="num">${fmtDate(x.date)} · ${n} serie</span></li>`}).join("")}</ul>`
+    return `<li><b>${x.name||(DAYS[x.day]||{}).name||"Allenamento"}</b><span class="num">${fmtDate(x.date)} · ${n} serie</span></li>`}).join("")}</ul>`
     :`<p class="note">Qui compariranno i tuoi allenamenti salvati. Alla prossima seduta vedrai sotto ogni esercizio i pesi dell'ultima volta.</p>`);
 }
 
@@ -253,7 +432,7 @@ $("list").addEventListener("click",e=>{
   const b=e.target.closest("[data-done]");if(!b)return;
   const c=cur(), a=c[b.dataset.done]||(c[b.dataset.done]=[]), s=+b.dataset.s; a[s]=a[s]||{};
   if(!a[s].done){const kg=$(`kg-${b.dataset.done}-${s}`), rp=$(`rp-${b.dataset.done}-${s}`);
-    if(!a[s].kg&&kg.placeholder)a[s].kg=kg.placeholder;
+    if(kg&&!a[s].kg&&kg.placeholder)a[s].kg=kg.placeholder;
     if(!a[s].reps)a[s].reps=String(lowR(rp.placeholder));}
   a[s].done=!a[s].done;save();
   if(a[s].done)startTimer(+b.dataset.rest);
@@ -262,12 +441,45 @@ $("list").addEventListener("click",e=>{
 $("save").addEventListener("click",()=>{const c=cur(), sets={};
   Object.entries(c).filter(([k])=>k[0]!=="_").forEach(([k,a])=>{const d=(a||[]).filter(x=>x&&x.done).map(x=>({kg:x.kg||"0",reps:x.reps||"0"}));if(d.length)sets[k]=d});
   if(!Object.keys(sets).length){flash("Segna almeno una serie con la spunta prima di salvare.");return}
-  st.hist.push({date:Date.now(),day:st.day,sets});st.cur[st.day]={};save();stopTimer();render();flash("Allenamento salvato. Ottimo lavoro!")});
+  st.hist.push({date:Date.now(),day:st.day,name:DAYS[st.day].name,sets});st.cur[st.day]={};save();stopTimer();render();flash("Allenamento salvato. Ottimo lavoro!")});
 let clearArmed=false;
 $("clear").addEventListener("click",e=>{if(!clearArmed){clearArmed=true;e.target.textContent="Tocca di nuovo per svuotare";setTimeout(()=>{clearArmed=false;e.target.textContent="Svuota"},3000);return}
   clearArmed=false;e.target.textContent="Svuota";st.cur[st.day]={};save();render();flash("Seduta svuotata.")});
 
+const TIPO_HINT_CASA={massa:"8–15 ripetizioni lente e controllate: quando diventano facili passa alla variante più difficile.",forza:"Varianti più difficili e poche ripetizioni (5–8): rallenta la discesa per renderle dure.",definizione:"Tante ripetizioni e recuperi brevi, quasi a circuito: per bruciare e tonificare."};
+const TIPO_HINT={massa:"Pesi medi, 8–12 ripetizioni: per far crescere i muscoli.",forza:"Pesi alti, poche ripetizioni e recuperi lunghi: per spingere di più.",definizione:"Pesi più leggeri, tante ripetizioni e recuperi brevi: per tonificare e bruciare."};
+function renderPlan(){
+  const f=(SET.focus||[]).map(k=>`<span class="chip acc">${FOCUS_LBL[k]}</span>`).join("");
+  $("plan").innerHTML=`<div class="plan-top"><div><span class="eyebrow">La tua scheda</span>
+    <b>${SET.luogo==="casa"?"Casa":"Palestra"} · ${SET.giorni} giorni · ${TIPO_LBL[SET.tipo]} · ${SET.durata} min</b></div>
+    <button class="btn small" type="button" id="openSetup">Personalizza</button></div>
+    <div class="facts">${DAYS.map(d=>`<span class="chip">${d.when.slice(0,3)} · ${d.name}</span>`).join("")}${f}</div>`;
+}
+function readSetup(){const v=n=>(document.querySelector(`#setup [name=${n}]:checked`)||{}).value;
+  return {luogo:v("luogo")||"palestra",giorni:+v("giorni"),tipo:v("tipo"),durata:+v("durata"),livello:v("livello"),focus:[...document.querySelectorAll("#focusChips [aria-pressed=true]")].map(b=>b.dataset.f)}}
+function previewSetup(){const o=readSetup();$("tipoHint").textContent=(o.luogo==="casa"?TIPO_HINT_CASA:TIPO_HINT)[o.tipo]||"";
+  $("luogoHint").textContent=o.luogo==="casa"?"Solo corpo libero: ti servono una sedia robusta, un tavolo, un asciugamano e uno zaino. Niente pesi da segnare, solo ripetizioni.":"Macchine, bilancieri e manubri della palestra.";
+  const P=buildPlan(o);
+  $("pv").innerHTML=`<span class="eyebrow">Anteprima</span>`+P.map(d=>`<div class="pv-row"><b>${d.when}</b><span>${d.name}</span><span class="num">${d.ex.length} esercizi · ≈ ${minutes(d)} min</span></div>`).join("");}
+function openSetup(){
+  ["luogo","giorni","tipo","durata","livello"].forEach(n=>{const el=document.querySelector(`#setup [name=${n}][value="${SET[n]}"]`);if(el)el.checked=true});
+  $("focusChips").innerHTML=Object.keys(FOCUS_LBL).map(k=>`<button type="button" class="fchip" data-f="${k}" aria-pressed="${(SET.focus||[]).includes(k)}">${FOCUS_LBL[k]}</button>`).join("");
+  $("setup").hidden=false;$("plan").hidden=true;previewSetup();$("setup").scrollIntoView({block:"start"});
+}
+document.addEventListener("click",e=>{if(e.target.closest("#openSetup"))openSetup()});
+$("focusChips").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;
+  const on=b.getAttribute("aria-pressed")==="true", n=document.querySelectorAll("#focusChips [aria-pressed=true]").length;
+  if(!on&&n>=2){flash("Puoi scegliere al massimo 2 muscoli da curare di più.");return}
+  b.setAttribute("aria-pressed",String(!on));previewSetup()});
+$("setup").addEventListener("change",previewSetup);
+$("setupCancel").addEventListener("click",()=>{$("setup").hidden=true;$("plan").hidden=false});
+$("setup").addEventListener("submit",e=>{e.preventDefault();SET=readSetup();
+  try{localStorage.setItem(SKEY,JSON.stringify(SET))}catch(err){}
+  DAYS=buildPlan(SET);st.day=0;st.cur={};save();stopTimer();
+  $("setup").hidden=true;$("plan").hidden=false;render();window.scrollTo(0,0);flash("Scheda creata: "+DAYS.map(d=>d.name).join(", ")+".")});
+
 load();render();
+(function(){const p=window.MyFit&&MyFit.load();if(p)document.getElementById("ptitle").textContent="Allenamento di "+p.nome;})();
 // ===== Animazioni degli esercizi (omino stilizzato, disegnato in canvas) =====
 // Vista laterale: angoli in gradi (0 = destra, 90 = giù). hx,hy = anca; t = busto; ua/fa = braccio/avambraccio; th/sh = coscia/tibia; ft = piede.
 // anchor:"ankle"|"toe" tiene fermo il piede durante il movimento (ax, ay). armRel: braccia relative al busto.
@@ -292,6 +504,24 @@ const ANIM={
  legcurl:{A:{hx:95,hy:130,t:180,th:0,sh:0,ft:60,ua:100,fa:20},B:{sh:-100,ft:-10},props:(h,J)=>{h.bench(22,150,137);h.pad(J.ankle)}},
  shoulder:{A:{hx:100,hy:160,t:-90,th:0,sh:90,ua:-84,fa:-88},B:{ua:110,fa:-80},props:(h,J)=>{h.bench(70,126,165);h.line([84,70],[84,162],7);h.db(J.wrist)}},
  laterali:{front:1,A:{a:8,b:12},B:{a:85,b:90},props:(h,J)=>{h.db(J.wR);h.db(J.wL)}},
+ legext:{A:{hx:95,hy:160,t:-95,th:0,sh:90,ft:0,ua:95,fa:60},B:{sh:5,ft:-80},props:(h,J)=>{h.bench(70,132,167);h.line([86,166],[78,108],7);h.pad(J.ankle)}},
+ stacco:{anchor:"ankle",ax:100,ay:GROUND,A:{t:-90,th:90,sh:90,ft:0,ua:90,fa:90},B:{t:-15,th:65,sh:98,ua:90,fa:90},props:(h,J)=>{h.bar(J.wrist,9)}},
+ hipthrust:{armRel:1,anchor:"ankle",ax:150,ay:GROUND,A:{t:204,th:-35,sh:90,ft:0,ua:180,fa:0},B:{t:189,th:0},props:(h,J)=>{h.bench(18,72,160);h.bar(J.hip,9)}},
+ legraise:{A:{hx:100,hy:192,t:180,th:0,sh:0,ft:-80,ua:0,fa:0},B:{th:-80,sh:-80,ft:-170},props:(h)=>{h.line([28,198],[172,198],3)}},
+ pushup:{anchor:"ankle",ax:160,ay:198,A:{t:204,th:24,sh:24,ft:-60,ua:90,fa:90},B:{t:188,th:8,sh:8,ft:-75,ua:-20,fa:115},props:()=>{}},
+ pike:{anchor:"ankle",ax:150,ay:198,A:{t:145,th:60,sh:60,ft:-30,ua:130,fa:130},B:{t:125,ua:200,fa:120},props:()=>{}},
+ invrow:{anchor:"ankle",ax:165,ay:198,A:{t:204,th:24,sh:24,ft:-70,ua:-88,fa:-88},B:{t:220,th:40,sh:40,ua:150,fa:-95},props:(h)=>{h.line([8,92],[96,92],6);h.line([90,92],[90,GROUND],4);h.line([14,92],[14,GROUND],4)}},
+ superman:{A:{hx:110,hy:192,t:180,th:0,sh:0,ft:80,ua:180,fa:180},B:{t:170,th:-9,sh:-9,ft:70,ua:160,fa:160},props:(h)=>{h.line([20,198],[180,198],3)}},
+ dip:{A:{hx:85,hy:150,t:-92,th:20,sh:62,ft:0,ua:100,fa:100},B:{hy:180,th:-20,sh:60,ua:170,fa:44},props:(h)=>{h.bench(30,76,152)}},
+ affondo:{A:{hx:100,hy:120,t:-90,th:90,sh:90,ft:0,th2:90,sh2:90,ft2:0,ua:90,fa:90},B:{hy:160,th:0,sh:90,th2:120,sh2:175,ft2:200},props:()=>{}},
+ wallsit:{A:{hx:62,hy:160,t:-90,th:0,sh:90,ft:0,ua:0,fa:0},B:{hy:157,ua:-5,fa:-5},props:(h)=>{h.line([50,40],[50,GROUND],6)}},
+ ponte:{anchor:"ankle",ax:140,ay:198,A:{t:172,th:-45,sh:90,ft:0,ua:0,fa:0},B:{t:144,th:-10},props:(h)=>{h.line([20,201],[180,201],3)}},
+ plank:{anchor:"ankle",ax:165,ay:198,A:{t:194,th:14,sh:14,ft:-70,ua:90,fa:180},B:{t:196,th:16,sh:16},props:()=>{}},
+ climber:{anchor:"ankle",ax:160,ay:198,A:{t:204,th:24,sh:24,ft:-60,th2:24,sh2:24,ft2:-60,ua:90,fa:90},B:{th2:200,sh2:100,ft2:-150},props:()=>{}},
+ squatbw:{anchor:"ankle",ax:100,ay:GROUND,A:{t:-90,th:90,sh:90,ft:0,ua:0,fa:0},B:{t:-60,th:15,sh:110,ua:-5,fa:-5},props:()=>{}},
+ stacbw:{anchor:"ankle",ax:100,ay:GROUND,A:{t:-90,th:90,sh:90,ft:0,ua:90,fa:90},B:{t:-15,th:65,sh:98,ua:90,fa:90},props:()=>{}},
+ calfbw:{anchor:"toe",ax:108,ay:188,A:{t:-90,th:90,sh:90,ft:0,ua:85,fa:86},B:{ft:45},props:(h)=>{h.line([60,191],[130,191],6);h.line([126,191],[126,GROUND],4)}},
+ zaino:{A:{hx:100,hy:120,t:-90,th:90,sh:90,ua:85,fa:84},B:{fa:-70},props:(h,J)=>{h.pad?0:0;h.bag(J.wrist)}},
  calf:{anchor:"toe",ax:108,ay:GROUND,A:{t:-90,th:90,sh:90,ft:0,ua:85,fa:86},B:{ft:45},props:(h,J)=>{h.db(J.wrist,1)}}
 };
 const R=d=>d*Math.PI/180, V=(p,l,a)=>[p[0]+l*Math.cos(R(a)),p[1]+l*Math.sin(R(a))];
@@ -303,7 +533,9 @@ function sideJoints(def,p){
     const knee=V(ank,-40,p.sh);hip=V(knee,-40,p.th);}
   const sh=V(hip,50,p.t), head=V(sh,15,p.t), arm0=V(sh,4,p.t+90), elbow=V(arm0,28,ua), wrist=V(elbow,26,fa),
     knee=V(hip,40,p.th), ankle=V(knee,40,p.sh), toe=V(ankle,12,p.ft||0);
-  return {hip,sh,arm0,head,elbow,wrist,knee,ankle,toe};
+  const J={hip,sh,arm0,head,elbow,wrist,knee,ankle,toe};
+  if(p.th2!==undefined){J.knee2=V(hip,40,p.th2);J.ankle2=V(J.knee2,40,p.sh2);J.toe2=V(J.ankle2,12,p.ft2||0)}
+  return J;
 }
 function frontJoints(p){
   const sR=[116,72],sL=[84,72], eR=V(sR,28,90-p.a), eL=V(sL,28,90+p.a), wR=V(eR,26,90-p.b), wL=V(eL,26,90+p.b);
@@ -335,7 +567,8 @@ function drawAnim(cv,id,k){
     tower:x=>{L([x,10],[x,GROUND],6,C.eq);c.fillStyle=C.eq;c.beginPath();c.arc(x<100?x+4:x-4,22,4,0,7);c.fill()},
     cable:(a,b)=>L(a,b,1.6,C.eq),
     handle:p=>{c.fillStyle=C.acc;c.beginPath();c.arc(p[0],p[1],4.5,0,7);c.fill()},
-    pad:p=>{c.fillStyle=C.eq;c.beginPath();c.arc(p[0]+2,p[1]-7,6,0,7);c.fill()}
+    pad:p=>{c.fillStyle=C.eq;c.beginPath();c.arc(p[0]+2,p[1]-7,6,0,7);c.fill()},
+    bag:p=>{c.fillStyle=C.acc;c.fillRect(p[0]-7,p[1]-2,14,16);c.fillRect(p[0]-3,p[1]-5,6,4)}
   };
   L([8,GROUND+3],[192,GROUND+3],2,C.line);
   const p=pose(def,k);
@@ -349,7 +582,9 @@ function drawAnim(cv,id,k){
   }else{
     const J=sideJoints(def,p);
     def.props(h,J);
-    const I=C.ink;L(J.hip,J.knee,5,I);L(J.knee,J.ankle,5,I);L(J.ankle,J.toe,5,I);L(J.hip,J.sh,5,I);L(J.arm0,J.elbow,5,I);L(J.elbow,J.wrist,5,I);
+    const I=C.ink;
+    if(J.knee2){c.globalAlpha=.45;L(J.hip,J.knee2,5,I);L(J.knee2,J.ankle2,5,I);L(J.ankle2,J.toe2,5,I);c.globalAlpha=1}
+    L(J.hip,J.knee,5,I);L(J.knee,J.ankle,5,I);L(J.ankle,J.toe,5,I);L(J.hip,J.sh,5,I);L(J.arm0,J.elbow,5,I);L(J.elbow,J.wrist,5,I);
     c.fillStyle=I;c.beginPath();c.arc(J.head[0],J.head[1],9,0,7);c.fill();
     const onTop={...h,bench:()=>{},line:()=>{},tower:()=>{},cable:()=>{}};def.props(onTop,J);
   }
@@ -367,6 +602,6 @@ new MutationObserver(()=>animCols=null).observe(document.documentElement,{attrib
 requestAnimationFrame(animLoop);
 </script>
 
-<script>if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{scope:"./"}).catch(()=>{}));</script>
+<script>MyFit.nav("palestra");</script>
 </body>
 </html>

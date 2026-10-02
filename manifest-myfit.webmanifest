@@ -1,0 +1,16 @@
+{
+  "name": "MyFit",
+  "short_name": "MyFit",
+  "lang": "it",
+  "id": "myfit",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f3ee",
+  "theme_color": "#2f6b4f",
+  "icons": [
+    {"src": "icona-myfit-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icona-myfit-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icona-myfit-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

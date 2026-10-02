@@ -7,11 +7,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Piano Pasti">
-<link rel="manifest" href="manifest-pasti.webmanifest">
-<link rel="apple-touch-icon" href="icona-pasti-180.png">
-<link rel="icon" href="icona-pasti-192.png">
-<title>Piano Pasti 2600</title>
+<meta name="apple-mobile-web-app-title" content="MyFit">
+<link rel="manifest" href="manifest-myfit.webmanifest">
+<link rel="apple-touch-icon" href="icona-myfit-180.png">
+<link rel="icon" href="icona-myfit-192.png">
+<title>Dieta · MyFit</title>
+<script src="myfit.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <style>
@@ -83,7 +84,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:1.75rem;letter-spacing
 .note{color:var(--muted);font-size:.85rem;margin:0}
 
 /* pannello dal basso */
-.scrim{position:fixed;inset:0;background:rgba(10,16,12,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(10,16,12,.45);display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--surface);width:100%;max-width:560px;max-height:85%;border-radius:20px 20px 0 0;box-shadow:var(--shadow);
   display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);animation:up .22s ease-out}
 @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
@@ -116,8 +117,8 @@ img{max-width:100%}
 
 <div class="wrap">
   <header>
-    <h1>Piano Pasti 2600</h1>
-    <p class="sub">Tocca una porzione per scegliere l'alimento: i grammi si adattano alle calorie del pasto.</p>
+    <h1>La tua dieta</h1>
+    <p class="sub" id="forwho">Tocca una porzione per scegliere l'alimento: i grammi si adattano alle calorie del pasto.</p>
   </header>
 
   <nav class="days" id="days" aria-label="Giorno della settimana"></nav>
@@ -127,7 +128,7 @@ img{max-width:100%}
   <section class="summary" aria-live="polite">
     <div class="sum-top">
       <div class="big num" id="tot">0<small>/ 2.600 kcal</small></div>
-      <div class="macros"><span>Proteine <b class="num" id="prot">0 g</b></span><span>Obiettivo <b>100–120 g</b></span></div>
+      <div class="macros"><span>Proteine <b class="num" id="prot">0 g</b></span><span>Obiettivo <b class="num" id="protT">100–120 g</b></span></div>
     </div>
     <div class="bar"><span id="barfill" style="width:0"></span></div>
   </section>
@@ -241,7 +242,8 @@ const WEEK=[
   {t:"Pasta al ragù · orata e patate",m:[["biscotti","latte","mela","marmellata"],["uva","mandorle"],["pasta","manzo","insalata","ragu"],["whey","piadina","avocado"],["orata","patate","pane","pomodori","olio"],["latte","biscotti"]]},
   {t:"Pasta al sugo di tonno · frittata e patate",m:[["paneint","yogurt","kiwi","cioc"],["kiwi","noci"],["pasta","bresaola","zucchine","sugotonno"],["whey","paneint","cremamand"],["uova","patate","pane","zucchine","olio"],["greco","miele"]]}
 ];
-const TARGET=2600;
+const PROF=(window.MyFit&&MyFit.load())||null, CALC=PROF?MyFit.calc(PROF):null;
+const TARGET=CALC?CALC.kcal:2600, KF=TARGET/2600, K=v=>Math.round(v*KF);
 const DAYS=["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
 
 function portion(id,kcal){
@@ -270,9 +272,9 @@ function render(){
   let tot=0,prot=0;
   $("daynote").textContent=WEEK[day].t;
   $("meals").innerHTML=mealsFor(day).map((m,i)=>{
-    let mk=0, target=m[1].reduce((a,c)=>a+c[1],0);
+    let mk=0, target=m[1].reduce((a,c)=>a+K(c[1]),0);
     const rows=m[1].map((c,j)=>{
-      const k=keyOf(m,i)+"-"+j, p=portion(sel[day][k],c[1]); mk+=p.kcal; prot+=p.prot;
+      const k=keyOf(m,i)+"-"+j, p=portion(sel[day][k],K(c[1])); mk+=p.kcal; prot+=p.prot;
       return `<button class="slot" type="button" data-s="${k}">
         <span class="cat">${c[0]}</span>
         <span class="food">${p.name} <em class="num">${p.g} ${p.unit}</em></span>
@@ -293,8 +295,8 @@ function openSheet(key){
   const [pre,jj]=key.split("-"), j=+jj, M=mealsFor(day), i=M.findIndex((m,x)=>keyOf(m,x)===pre), c=M[i][1][j];
   current=key; lastFocus=document.activeElement;
   $("sh-title").textContent=`${M[i][0]} · ${c[0]}`;
-  $("sh-sub").textContent=`Ogni alternativa vale circa ${c[1]} kcal`;
-  $("opts").innerHTML=c[2].map(id=>{const p=portion(id,c[1]);
+  $("sh-sub").textContent=`Ogni alternativa vale circa ${K(c[1])} kcal`;
+  $("opts").innerHTML=c[2].map(id=>{const p=portion(id,K(c[1]));
     return `<button class="opt" type="button" data-f="${id}" aria-current="${sel[day][key]===id}">
       <span class="n">${p.name}</span><span class="d num">${p.kcal} kcal · ${fmtN(p.prot)} g proteine</span>
       <span class="g"><b class="num">${p.g} ${p.unit}</b><span>${p.count}</span></span></button>`}).join("");
@@ -315,8 +317,12 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("scrim").hidden)
 $("reset").addEventListener("click",()=>{sel[day]=defaults(day);save();render();flash(DAYS[day]+": ripristinato il menu della settimana.")});
 
 load();render();
+(function(){const el=document.getElementById("forwho");
+  if(CALC){el.innerHTML=`Calcolata per <b>${PROF.nome}</b>: ${TARGET.toLocaleString("it-IT")} kcal al giorno. Tocca una porzione per cambiare alimento.`;
+    document.getElementById("protT").textContent="≈ "+CALC.prot+" g";}
+  else el.innerHTML=`Dieta base da 2.600 kcal. <a href="index.html">Crea il tuo profilo</a> per avere le calorie su misura.`;})();
 </script>
 
-<script>if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{scope:"./"}).catch(()=>{}));</script>
+<script>MyFit.nav("dieta");</script>
 </body>
 </html>

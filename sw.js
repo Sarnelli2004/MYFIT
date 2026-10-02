@@ -1,7 +1,6 @@
 // Prima la rete (così gli aggiornamenti arrivano subito), senza internet la copia salvata.
-const C="myfit-v2";
-const CORE=["./","index.html","pasti.html","allenamento.html","manifest-pasti.webmanifest","manifest-palestra.webmanifest",
- "icona-pasti-180.png","icona-pasti-192.png","icona-pasti-512.png","icona-palestra-180.png","icona-palestra-192.png","icona-palestra-512.png"];
+const C="myfit-v5";
+const CORE=["./","index.html","pasti.html","allenamento.html","myfit.js","manifest-myfit.webmanifest","icona-myfit-180.png","icona-myfit-192.png","icona-myfit-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(CORE)).catch(()=>{}));self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;
